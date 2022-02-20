@@ -31,6 +31,8 @@ class Locals {
 		const awsRegion=process.env.AWS_REGION;
 		const awsAccessKey=process.env.SES_ACCESS_KEY;
 		const awsSecretKey=process.env.SES_SECRET_KEY;
+        const facebookAppId=process.env.FACEBOOK_CLIENT_API
+        const facebookAppSecret=process.env.FACEBOOK_CLIENT_SECRET
 		return {
 			apiPrefix,
 			copyright,
@@ -51,7 +53,9 @@ class Locals {
 			twilioTestNumber,
 			awsAccessKey,
 			awsRegion,
-			awsSecretKey
+			awsSecretKey,
+            facebookAppId,
+            facebookAppSecret
 		};
 	}
 }
