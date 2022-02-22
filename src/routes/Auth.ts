@@ -11,4 +11,6 @@ router.post('/login', Auth.login)
 //Signup Via Facebook
 router.post('/signup/facebook', Auth.facebookSignup)
 
+//Login Via Facebook
+router.post('/login/facebook', Auth.facebookLogin)
 export default router

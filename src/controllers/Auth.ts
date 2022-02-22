@@ -99,6 +99,46 @@ class Auth{
             }
         }
     }
+    public static async facebookLogin(req: Request, res: Response){
+        try{
+            console.log('Request Body is', req.body)
+            const {code}=req.body
+            const {data} = await axios({
+              url: 'https://graph.facebook.com/v13.0/oauth/access_token',
+              method: 'get',
+              params: {
+                client_id: Locals.config().facebookAppId,
+                client_secret: Locals.config().facebookAppSecret,
+                redirect_uri: Locals.config().frontend_url,
+                code,
+              },
+            });
+            const fb_access_token=data.access_token
+            console.log(data); // { access_token, token_type, expires_in }
+            const response = await axios({
+                url: 'https://graph.facebook.com/me',
+                method: 'get',
+                params: {
+                  fields: ['email', 'first_name', 'last_name'].join(','),
+                  access_token: fb_access_token,
+                },
+              });
+            console.log('Graph Response is', response.data); // { id, email, first_name, last_name }
+            const foundUser=await User.findOne({email: response.data.email}).select('-password')
+            if(foundUser){
+                const tokenObject=JWT.issueJWT(foundUser)
+                return res.status(200).json({message: 'Login Success', token: tokenObject.token, user: foundUser, source: 'facebook'})
+            }else{
+                throw new Error('User Not Found')
+            }
+        }catch(err){
+            if(err instanceof Error){
+                return res.status(500).json({message: 'Server Error', error: err.message})
+            }else{
+                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
+            }
+        }
+    }
 }
 
 export default Auth

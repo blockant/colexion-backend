@@ -33,6 +33,7 @@ class Locals {
 		const awsSecretKey=process.env.SES_SECRET_KEY;
         const facebookAppId=process.env.FACEBOOK_CLIENT_API
         const facebookAppSecret=process.env.FACEBOOK_CLIENT_SECRET
+        const frontend_url=process.env.frontend_url
 		return {
 			apiPrefix,
 			copyright,
@@ -55,7 +56,8 @@ class Locals {
 			awsRegion,
 			awsSecretKey,
             facebookAppId,
-            facebookAppSecret
+            facebookAppSecret,
+            frontend_url
 		};
 	}
 }
