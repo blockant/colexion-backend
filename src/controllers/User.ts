@@ -4,7 +4,7 @@ import Logger from "../providers/Logger";
 class Users{
     public static async editUser(req: Request, res: Response){
         try {
-            const {name,password}=req.body
+            const {name,password, bio, external_urls}=req.body
             let foundUser= await User.findById(res.locals.userId)
             if(!foundUser){
                 throw new Error('User Not Found')
@@ -14,6 +14,12 @@ class Users{
             }
             if(password){
                 foundUser.password=password
+            }
+            if(bio){
+                foundUser.bio=bio
+            }
+            if(external_urls){
+                foundUser.external_urls=external_urls
             }
             await foundUser.save()
             foundUser= await User.findById(res.locals.userId).select('-password')
@@ -56,6 +62,9 @@ class Users{
                 return res.status(500).json({message: 'Server Error of Unhandledd Type'})
             }
         }
+    }
+    public static async addWallet(req: Request, res: Response){
+
     }
 }
 export default Users

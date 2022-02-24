@@ -16,7 +16,29 @@ const UserSchema= new mongoose.Schema<IUserModel>(
             match: [/^([a-zA-Z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)$/gm, 'Please fill a valid email address']
         },
         name: {type: String, required: true},
-        password: {type: String, required: true}
+        password: {type: String, required: true},
+        email_verified: {
+            type: Boolean,
+            default: false
+        },
+        wallets:[
+            {
+                name: String,
+                address: String
+            }
+        ],
+        external_urls:[
+            {
+                platform: {
+                    type: String,
+                    required: true
+                },
+                link: {
+                    type: String,
+                    required: true
+                }
+            }
+        ]
     },{
         timestamps: true
     }
