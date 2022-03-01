@@ -20,6 +20,10 @@ app.get( "/health", ( req, res ) => {
 });
 
 app.use('/api/v1', masterRoutes)
+// add this handler before emitting any events
+process.on('uncaughtException', function (err) {
+    console.log('UNCAUGHT EXCEPTION - keeping process alive:', err); 
+});
 app.listen( process.env.PORT, () => {
     Logger.info(`server started at http://localhost:${ process.env.PORT }`)
 } );

@@ -29,11 +29,13 @@ class Locals {
 		const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
 		const twilioTestNumber = process.env.MY_NUMBER;
 		const awsRegion=process.env.AWS_REGION;
-		const awsAccessKey=process.env.SES_ACCESS_KEY;
-		const awsSecretKey=process.env.SES_SECRET_KEY;
         const facebookAppId=process.env.FACEBOOK_CLIENT_API
         const facebookAppSecret=process.env.FACEBOOK_CLIENT_SECRET
         const frontend_url=process.env.frontend_url
+		const gcpBucketName=process.env.GCP_BUCKET_NAME
+		const awsAccessId=process.env.AWS_ACCESS_KEY_ID
+		const awsSecretKey=process.env.AWS_SECRET_ACCESS_KEY
+		const awsS3Bucket=process.env.AWS_S3_BUCKET_NAME
 		return {
 			apiPrefix,
 			copyright,
@@ -52,12 +54,14 @@ class Locals {
 			twilioAuthToken,
 			twilioNumber,
 			twilioTestNumber,
-			awsAccessKey,
+			awsAccessId,
 			awsRegion,
 			awsSecretKey,
             facebookAppId,
             facebookAppSecret,
-            frontend_url
+            frontend_url,
+			gcpBucketName,
+			awsS3Bucket
 		};
 	}
 }
