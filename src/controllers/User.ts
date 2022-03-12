@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import Logger from "../providers/Logger";
 import AWSService from "../services/AWS";
 import Locals from "../providers/Locals";
+import ErrorHandler from "../providers/Error";
+import Follows from "../models/Follower";
 // import processFileMiddleware from "../middlewares/Upload";
 class Users{
     public static async editUser(req: Request, res: Response){
@@ -84,6 +86,45 @@ class Users{
     }
     public static async addWallet(req: Request, res: Response){
 
+    }
+    public static async toggleFollowUser(req: Request, res: Response){
+        try{
+            const {following_id, operation}=req.body
+            if(operation==='FOLLOW'){
+                const foundFollow=await Follows.findOne({follower: res.locals.userId, following: following_id})
+                if(foundFollow){
+                    throw new Error('User already follows this user')
+                }else{
+                    await Follows.create({follower: res.locals.userId, following: following_id})
+                    return res.status(200).json({message: 'Success, followed Success'})
+                }
+            }else if(operation==='UNFOLLOW'){
+                const foundFollow=await Follows.findOne({follower: res.locals.userId, following: following_id})
+                if(!foundFollow){
+                    throw new Error('User does not follows this user')
+                }else{
+                    await Follows.deleteOne({_id: foundFollow._id})
+                    return res.status(200).json({message: 'Success, unfollowed Success'})
+                }
+            }else{
+                throw new Error('Illegal Operation')
+            }
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getFollowingInfo(req: Request, res: Response){
+        try{
+            const {following_id, follower_id}=req.body
+            const foundFollow=await Follows.findOne({follower: follower_id, following: following_id})
+            if(!foundFollow){
+                return res.status(404).json({message: 'No follow Exist'})
+            }else{
+                return res.status(200).json({message: 'Follow exists'})
+            }
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
     }
 }
 export default Users

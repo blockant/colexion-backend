@@ -43,8 +43,14 @@ const UserSchema= new mongoose.Schema<IUserModel>(
         bio:{
             type: String
         },
-        avatar: String,
-        banner: String
+        avatar: {
+            type: String,
+            default: ""
+        },
+        banner: {
+            type: String,
+            default: ""
+        }
     },{
         timestamps: true
     }
