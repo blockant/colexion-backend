@@ -23,7 +23,10 @@ const NFTSchema= new mongoose.Schema<INFT>({
                 type: String
             }
         }
-    ]
+    ],
+    onMarketPlace:{
+        type: Boolean
+    }
 }, {timestamps: true}) 
 
 
