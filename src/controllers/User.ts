@@ -7,6 +7,11 @@ import ErrorHandler from "../providers/Error";
 import Follows from "../models/Follower";
 // import processFileMiddleware from "../middlewares/Upload";
 class Users{
+    /**
+     * @param {req, res} 
+     * @returns Edited User
+     * @desc Edits a logged in user based on ID
+     */
     public static async editUser(req: Request, res: Response){
         try {
             console.log('Request Body is', req.body)
@@ -63,12 +68,7 @@ class Users{
             }
             return res.status(200).json({message: 'Found User Is', user: foundUser})
         }catch(err){
-            Logger.error(err)
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async getLoggedInUser(req: Request, res: Response){
@@ -76,12 +76,7 @@ class Users{
             const foundUser=await User.findById(res.locals.userId).select('-password')
             return res.status(200).json({mesage: 'Succes', user: foundUser})
         }catch(err){
-            Logger.error(err)
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async addWallet(req: Request, res: Response){
@@ -115,13 +110,26 @@ class Users{
     }
     public static async getFollowingInfo(req: Request, res: Response){
         try{
-            const {following_id, follower_id}=req.body
-            const foundFollow=await Follows.findOne({follower: follower_id, following: following_id})
+            const {following_id}=req.query
+            const foundFollow=await Follows.findOne({follower: res.locals.userId, following: following_id})
             if(!foundFollow){
                 return res.status(404).json({message: 'No follow Exist'})
             }else{
                 return res.status(200).json({message: 'Follow exists'})
             }
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getAllUsers(req: Request, res: Response){
+        try{
+            const options={
+                page: Number(req.query.page) || 1,
+                limit: Number(req.query.limit) || 10,
+                select: '-password'
+            }
+            const foundUsers=await User.paginate({}, options)
+            return res.status(200).json({message: 'Users Found Success', foundUsers})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

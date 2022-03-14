@@ -1,6 +1,7 @@
 import { Response } from "express";
 class ErrorHandler{
     public static APIErrorHandler(err: any, res: Response){
+        console.log(err)
         if(err instanceof Error){
             return res.status(500).json({message: 'Server Error', error: err.message})
         }else{

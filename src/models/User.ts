@@ -1,13 +1,14 @@
 import mongoose from "../providers/Database";
 import IUser from "../interfaces/User";
 import bcrypt from 'bcrypt'
+import mongoosePaginate from 'mongoose-paginate-v2'
 
 // Create the model schema & register your custom methods here
-export interface IUserModel extends IUser, mongoose.Document {
+export interface IUserModel <T extends mongoose.Document> extends mongoose.PaginateModel<T>  {
     authenticate(password: string): boolean;
 }
 
-const UserSchema= new mongoose.Schema<IUserModel>(
+const UserSchema= new mongoose.Schema<IUser>(
     {
         email: {
             type:String,
@@ -57,7 +58,7 @@ const UserSchema= new mongoose.Schema<IUserModel>(
 )
 
 // Password hash middleware
-UserSchema.pre<IUserModel>('save', function (_next) {
+UserSchema.pre<IUser>('save', function (_next) {
 	const user = this;
 	// Only Save If User Is Modified
     if (!user.isModified('password')) {
@@ -90,6 +91,6 @@ UserSchema.methods={
           }
     }
 }
-
-const User = mongoose.model<IUserModel>('User', UserSchema);
+UserSchema.plugin(mongoosePaginate)
+const User: IUserModel<IUser> = mongoose.model<IUser>('User', UserSchema) as IUserModel<IUser>;
 export default User

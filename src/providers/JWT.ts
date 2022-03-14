@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken'
-import { IUserModel } from '../models/User';
 import Locals from './Locals';
 import { Request } from 'express';
+import IUser from '../interfaces/User';
 class JWT{
-    public static issueJWT(user: IUserModel): {token: string, expires: number}{
+    public static issueJWT(user: IUser): {token: string, expires: number}{
         const expiresIn=Locals.config().jwtExpiresIn
         const payload = {
             sub: user._id,

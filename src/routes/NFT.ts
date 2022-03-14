@@ -4,6 +4,6 @@ import { isLoggedIn } from "../middlewares/Auth";
 import upload from "../middlewares/Upload";
 const router=Router()
 
-router.post('/', [isLoggedIn, upload.single('nft')], NFTController.createNFT)
+router.post('/', [upload.single('file')], NFTController.createNFT)
 
 export default router

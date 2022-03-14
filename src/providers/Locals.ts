@@ -36,6 +36,9 @@ class Locals {
 		const awsAccessId=process.env.AWS_ACCESS_KEY_ID
 		const awsSecretKey=process.env.AWS_SECRET_ACCESS_KEY
 		const awsS3Bucket=process.env.AWS_S3_BUCKET_NAME
+		const pinataAPIKey=process.env.PINATA_API_KEY
+		const pinataSecret=process.env.PINATA_API_SECRET
+		const ERC721Address=process.env.ERC721Address
 		return {
 			apiPrefix,
 			copyright,
@@ -61,7 +64,10 @@ class Locals {
             facebookAppSecret,
             frontend_url,
 			gcpBucketName,
-			awsS3Bucket
+			awsS3Bucket,
+			pinataAPIKey,
+			pinataSecret,
+			ERC721Address
 		};
 	}
 }
