@@ -7,6 +7,9 @@ const router=Router()
 // Get Logged in User
 router.get('/',[isLoggedIn], Users.getLoggedInUser)
 
+//Get User By Id
+router.get('/:userId', Users.getUserById)
+
 // Edit User Info
 router.put('/',[isLoggedIn, upload.any()], Users.editUser)
 
