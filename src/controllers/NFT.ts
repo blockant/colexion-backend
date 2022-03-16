@@ -10,7 +10,7 @@ import pinata from "../services/Pinata";
 import Web3 from "web3";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 class NFTController{
-    public static async createNFT(req: Request, res: Response){
+    public static async pinToIPFS(req: Request, res: Response){
         try{
             const {name, description, operation}=req.body
             // await processFileMiddleware(req, res);
@@ -45,24 +45,55 @@ class NFTController{
             return res.status(200).json({message: 'Done', nft: nftModel})
         }catch(err){
             console.log(err)
-            ErrorHandler.APIErrorHandler(err, res)
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async getAllNFT(req: Request, res: Response){
         try{
             const options={
                 page: Number(req.query.page) || 1,
-                limit: Number(req.query.limit) || 10
+                limit: Number(req.query.limit) || 10,
+                lean: true
             }
             if(req.query?.paginate==='false'){
-                const foundNFTS=await NFT.find({})
+                let foundNFTS=await NFT.find({}).lean()
+                if(res.locals.userId){
+                    foundNFTS=foundNFTS.map((nft)=>{
+                        if(nft.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
+                            nft.liked_by_logged_in_user=true
+                        }else{
+                            nft.liked_by_logged_in_user=false
+                        }
+                        if(nft.wished_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
+                            nft.wished_by_logged_in_user=true
+                        }else{
+                            nft.wished_by_logged_in_user=false
+                        }
+                        return nft
+                    })          
+                }
                 return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
             }else{
                 const foundNFTS=await NFT.paginate({}, options)
+                if(res.locals.userId){
+                    foundNFTS.docs=foundNFTS.docs.map((nft)=>{
+                        if(nft.liked_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
+                            nft.liked_by_logged_in_user=true
+                        }else{
+                            nft.liked_by_logged_in_user=false
+                        }
+                        if(nft.wished_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
+                            nft.wished_by_logged_in_user=true
+                        }else{
+                            nft.wished_by_logged_in_user=false
+                        }
+                        return nft
+                    }) 
+                }
                 return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
             }
         }catch(err){
-            ErrorHandler.APIErrorHandler(err, res)
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async toggleLikeNFT(req: Request, res: Response){
@@ -77,6 +108,7 @@ class NFTController{
                 const foundIdx=foundNFT.liked_by.findIndex(user=>user.user_id===res.locals.userId.toString())
                 if(foundIdx===-1){
                     foundNFT.liked_by.push({user_id: res.locals.userId.toString()})
+                    await foundNFT.save()
                 }else{
                     throw new Error('NFT Already Liked')
                 }
@@ -84,15 +116,16 @@ class NFTController{
                 const foundIdx=foundNFT.liked_by.findIndex(user=>user.user_id===res.locals.userId.toString())
                 if(foundIdx!==-1){
                     foundNFT.liked_by.splice(foundIdx, 1)
+                    await foundNFT.save()
                 }else{
                     throw new Error('NFT Not Liked')
                 }
             }else{
                 throw new Error('Illegal Operation')
             }
-            return res.status(200).json({message: 'NFT Created Success', foundNFT})
+            return res.status(200).json({message: 'NFT Updated Success', foundNFT})
         }catch(err){
-            ErrorHandler.APIErrorHandler(err, res)
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async addNFTToWishList(req: Request, res: Response){
@@ -107,6 +140,7 @@ class NFTController{
                 const foundIdx=foundNFT.wished_by.findIndex(user=>user.user_id===res.locals.userId.toString())
                 if(foundIdx===-1){
                     foundNFT.wished_by.push({user_id:res.locals.userId.toString()})
+                    await foundNFT.save()
                 }else{
                     throw new Error('NFT Already Wished')
                 }
@@ -114,15 +148,40 @@ class NFTController{
                 const foundIdx=foundNFT.wished_by.findIndex(user=>user.user_id===res.locals.userId.toString())
                 if(foundIdx!==-1){
                     foundNFT.wished_by.splice(foundIdx, 1)
+                    await foundNFT.save()
                 }else{
                     throw new Error('NFT Not Liked')
                 }
             }else{
                 throw new Error('Illegal operation')
             }
-            return res.status(200).json({message: 'NFT Created Success', foundNFT})
+            return res.status(200).json({message: 'NFT Updated Success', foundNFT})
         }catch(err){
-            ErrorHandler.APIErrorHandler(err, res)
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getNFTById(req: Request, res: Response){
+        try{
+            const nftId=req.params.nftId
+            const foundNFT=await NFT.findById(nftId).lean()
+            if(!foundNFT){
+                throw new Error('NFT Not Found')
+            }
+            if(res.locals.userId){
+                if(foundNFT.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
+                    foundNFT.liked_by_logged_in_user=true
+                }else{
+                    foundNFT.liked_by_logged_in_user=false
+                }
+                if(foundNFT.wished_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
+                    foundNFT.wished_by_logged_in_user=true
+                }else{
+                    foundNFT.wished_by_logged_in_user=false
+                }
+            }
+            return res.status(200).json({message: 'Success', nft: foundNFT})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
 }
