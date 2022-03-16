@@ -42,11 +42,6 @@ class NFTController{
                 onMarketPlace: false,
                 file_url: uploadedImageIPFSLink
             })
-            const provider = new HDWalletProvider(
-                'sort island camera clay tiger miss sting light scheme quit bid model',
-                'https://data-seed-prebsc-1-s1.binance.org:8545'
-            );
-            const web = new Web3(provider);
             return res.status(200).json({message: 'Done', nft: nftModel})
         }catch(err){
             console.log(err)
@@ -59,8 +54,13 @@ class NFTController{
                 page: Number(req.query.page) || 1,
                 limit: Number(req.query.limit) || 10
             }
-            const foundNFTS=await NFT.paginate({}, options)
-            return res.status(200).json({message: 'NFT Found Success', foundNFTS})
+            if(req.query?.paginate==='false'){
+                const foundNFTS=await NFT.find({})
+                return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
+            }else{
+                const foundNFTS=await NFT.paginate({}, options)
+                return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
+            }
         }catch(err){
             ErrorHandler.APIErrorHandler(err, res)
         }
