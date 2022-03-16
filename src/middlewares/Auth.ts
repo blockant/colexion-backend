@@ -4,6 +4,7 @@ import JWT from "../providers/JWT";
 import Logger from "../providers/Logger";
 import jwt from 'jsonwebtoken'
 import Locals from "../providers/Locals";
+import ErrorHandler from "../providers/Error";
 export const isLoggedIn= (req: Request, res: Response, next: NextFunction)=>{
     try{
         if(!req.headers.authorization){
@@ -13,11 +14,19 @@ export const isLoggedIn= (req: Request, res: Response, next: NextFunction)=>{
         res.locals.userId=decoded.sub
         next()
     }catch(err){
-        Logger.error(err)
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+        return ErrorHandler.APIErrorHandler(err, res)
+    }
+}
+export const decodeTokenIfLoggedIn=(req: Request, res: Response, next: NextFunction)=>{
+    try{
+        if(!req.headers.authorization){
+            next()
+        }else{
+            const decoded = jwt.verify(JWT.getToken(req), Locals.config().jwtSecretKey);
+            res.locals.userId=decoded.sub
+            next()
+        }
+    }catch(err){
+        return ErrorHandler.APIErrorHandler(err, res)
     }
 }

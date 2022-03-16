@@ -15,20 +15,29 @@ const NFTSchema= new mongoose.Schema<INFT>({
         {
             user_id: {
                 type: String
-            }
+            },
+            _id: false
         }
     ],
     wished_by:[
         {
             user_id: {
                 type: String
-            }
+            },
+            _id: false
         }
     ],
     onMarketPlace:{
         type: Boolean
     },
     file_url:{
+        type: String
+    },
+    minted:{
+        type: Boolean,
+        default: false
+    },
+    tokenId:{
         type: String
     }
 }, {timestamps: true}) 
