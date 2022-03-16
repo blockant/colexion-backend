@@ -128,8 +128,13 @@ class Users{
                 limit: Number(req.query.limit) || 10,
                 select: '-password'
             }
-            const foundUsers=await User.paginate({}, options)
-            return res.status(200).json({message: 'Users Found Success', foundUsers})
+            if(req.query?.paginate==='false'){
+                const foundUsers=await User.find({}).select('-password').select('-external_urls')
+                return res.status(200).json({message: 'Users Found Success', foundUsers})
+            }else{
+                const foundUsers=await User.paginate({}, options)
+                return res.status(200).json({message: 'Users Found Success', foundUsers})
+            }
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }
