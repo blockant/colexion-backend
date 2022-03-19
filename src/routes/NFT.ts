@@ -17,7 +17,7 @@ router.put('/:nftId/wish', [isLoggedIn], NFTController.addNFTToWishList)
 router.get('/',[decodeTokenIfLoggedIn], NFTController.getAllNFT)
 
 //Get All Owned NFTs
-router.get('/owned', [isLoggedIn], NFTController.getOwnedNFT)
+router.get('/owned', NFTController.getOwnedNFT)
 
 //Get NFT By Id
 router.get('/:nftId',[decodeTokenIfLoggedIn], NFTController.getNFTById )
