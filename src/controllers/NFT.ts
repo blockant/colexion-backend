@@ -117,13 +117,15 @@ class NFTController{
             if(!foundNFT){
                 throw new Error('No Such NFT Exists')
             }
+            let resp:any={}
             const {operation}=req.body
             if(operation==='LIKE'){
                 const foundIdx=foundNFT.liked_by.findIndex(user=>user.user_id===res.locals.userId.toString())
                 if(foundIdx===-1){
                     foundNFT.liked_by.push({user_id: res.locals.userId.toString()})
                     await foundNFT.save()
-                    foundNFT.liked_by_logged_in_user=true
+                    resp=foundNFT.toObject()
+                    resp.liked_by_logged_in_user=true
                 }else{
                     throw new Error('NFT Already Liked')
                 }
@@ -132,7 +134,8 @@ class NFTController{
                 if(foundIdx!==-1){
                     foundNFT.liked_by.splice(foundIdx, 1)
                     await foundNFT.save()
-                    foundNFT.liked_by_logged_in_user=false
+                    resp=foundNFT.toObject()
+                    resp.liked_by_logged_in_user=false
                 }else{
                     throw new Error('NFT Not Liked')
                 }
@@ -140,7 +143,7 @@ class NFTController{
                 throw new Error('Illegal Operation')
             }
             
-            return res.status(200).json({message: 'NFT Updated Success', foundNFT})
+            return res.status(200).json({message: 'NFT Updated Success', foundNFT: resp})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }
