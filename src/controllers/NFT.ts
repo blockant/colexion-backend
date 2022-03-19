@@ -64,8 +64,13 @@ class NFTController{
                 limit: Number(req.query.limit) || 10,
                 lean: true
             }
+            const {category}=req.query
+            const findQuery: Record<string,any>={}
+            if(category){
+                findQuery['category']=category
+            }
             if(req.query?.paginate==='false'){
-                let foundNFTS=await NFT.find({}).lean()
+                let foundNFTS=await NFT.find(findQuery).lean()
                 if(res.locals.userId){
                     foundNFTS=foundNFTS.map((nft)=>{
                         if(nft.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
@@ -83,7 +88,7 @@ class NFTController{
                 }
                 return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
             }else{
-                const foundNFTS=await NFT.paginate({}, options)
+                const foundNFTS=await NFT.paginate(findQuery, options)
                 if(res.locals.userId){
                     foundNFTS.docs=foundNFTS.docs.map((nft)=>{
                         if(nft.liked_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
@@ -211,7 +216,7 @@ class NFTController{
                 limit: Number(req.query.limit) || 10,
                 lean: true
             }
-            const {user_id}=req.query
+            const {user_id, category}=req.query
             if(!user_id){
                 throw new Error('User Id is Required')
             }
@@ -223,7 +228,13 @@ class NFTController{
             for (const wallet of foundUser.wallets) {
                 wallet_addresses.push(wallet.address)
             }
-            const foundNFTs=await NFT.paginate({'owner_address': {'$in': wallet_addresses}}, options)
+            const findQuery: Record<string,any>={
+                'owner_address': {'$in': wallet_addresses}
+            }
+            if(category){
+                findQuery['category']=category
+            }
+            const foundNFTs=await NFT.paginate(findQuery, options)
             return res.status(200).json({message: 'Success', foundNFTs})
         } catch (err) {
             return ErrorHandler.APIErrorHandler(err, res)
