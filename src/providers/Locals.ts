@@ -39,6 +39,7 @@ class Locals {
 		const pinataAPIKey=process.env.PINATA_API_KEY
 		const pinataSecret=process.env.PINATA_API_SECRET
 		const ERC721Address=process.env.ERC721Address
+		const emailSenderAddress=process.env.SENDER_EMAIL
 		return {
 			apiPrefix,
 			copyright,
@@ -67,7 +68,8 @@ class Locals {
 			awsS3Bucket,
 			pinataAPIKey,
 			pinataSecret,
-			ERC721Address
+			ERC721Address,
+			emailSenderAddress
 		};
 	}
 }

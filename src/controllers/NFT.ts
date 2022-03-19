@@ -9,10 +9,12 @@ import {Readable} from 'stream'
 import pinata from "../services/Pinata";
 import Web3 from "web3";
 import HDWalletProvider from "@truffle/hdwallet-provider";
+import AWSService from "../services/AWS";
+import User from "../models/User";
 class NFTController{
     public static async pinToIPFS(req: Request, res: Response){
         try{
-            const {name, description, operation}=req.body
+            const {name, description, category}=req.body
             // await processFileMiddleware(req, res);
             if(!req?.file){
                 return res.status(400).json({ message: "Please upload a file!" });
@@ -22,6 +24,7 @@ class NFTController{
                     name: req.file.originalname
                 }
             }
+            const s3_url=await AWSService.uploadToS3Bucket(req.file, Locals.config().awsS3Bucket)
             const readableStream=Readable.from(req.file.buffer)
             //TODO: Fix this hack
             // @ts-ignore: Hack refered @ https://github.com/PinataCloud/Pinata-SDK/issues/28#issuecomment-816439078
@@ -32,7 +35,8 @@ class NFTController{
             const nftMetaData={
                 name: name,
                 description: description,
-                image: uploadedImageIPFSLink
+                image: uploadedImageIPFSLink,
+                category: category
             }
             //Upload MetaData To IPFS
             const nftResponse=await pinata.pinJSONToIPFS(nftMetaData)
@@ -40,7 +44,12 @@ class NFTController{
             const nftModel=await NFT.create({
                 content_hash: nftResponse.IpfsHash,
                 onMarketPlace: false,
-                file_url: uploadedImageIPFSLink
+                file_url: uploadedImageIPFSLink,
+                category: category,
+                file_cloud_url: s3_url,
+                name: name,
+                description: description,
+                file_type: req.file.mimetype
             })
             return res.status(200).json({message: 'Done', nft: nftModel})
         }catch(err){
@@ -109,6 +118,7 @@ class NFTController{
                 if(foundIdx===-1){
                     foundNFT.liked_by.push({user_id: res.locals.userId.toString()})
                     await foundNFT.save()
+                    foundNFT.liked_by_logged_in_user=true
                 }else{
                     throw new Error('NFT Already Liked')
                 }
@@ -117,12 +127,14 @@ class NFTController{
                 if(foundIdx!==-1){
                     foundNFT.liked_by.splice(foundIdx, 1)
                     await foundNFT.save()
+                    foundNFT.liked_by_logged_in_user=false
                 }else{
                     throw new Error('NFT Not Liked')
                 }
             }else{
                 throw new Error('Illegal Operation')
             }
+            
             return res.status(200).json({message: 'NFT Updated Success', foundNFT})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
@@ -181,6 +193,35 @@ class NFTController{
             }
             return res.status(200).json({message: 'Success', nft: foundNFT})
         }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async markNFTMinted(req: Request, res: Response){
+        try {
+            const {transaction_hash, content_hash, blockId}=req.body
+
+        } catch (err) {
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getOwnedNFT(req: Request, res: Response){
+        try {
+            const options={
+                page: Number(req.query.page) || 1,
+                limit: Number(req.query.limit) || 10,
+                lean: true
+            }
+            const foundUser= await User.findById(res.locals.userId).select('-password')
+            if(!foundUser){
+                throw new Error('No Logged in User Found')
+            }
+            const wallet_addresses=[]
+            for (const wallet of foundUser.wallets) {
+                wallet_addresses.push(wallet.address)
+            }
+            const foundNFTs=await NFT.paginate({'owner_address': {'$in': wallet_addresses}}, options)
+            return res.status(200).json({message: 'Success', foundNFTs})
+        } catch (err) {
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }

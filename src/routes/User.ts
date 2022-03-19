@@ -21,4 +21,7 @@ router.get('/follow',[isLoggedIn],Users.getFollowingInfo)
 
 //Get User By Id
 router.get('/:userId', Users.getUserById)
+
+//Wallet 
+router.put('/wallet', [isLoggedIn], Users.addWallet)
 export default router

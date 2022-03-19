@@ -42,10 +42,16 @@ class AWSService{
                     Data: `${subject}`
                    }
                   },
-                Source: 'team@sowlow.co'
+                Source: `${Locals.config().emailSenderAddress}`
               };
+              const SESConfig={
+                  apiVersion: '2010-12-01',
+                  region: Locals.config().awsRegion,
+                  accessKeyId:  Locals.config().awsAccessId,
+                  secretAccessKey:  Locals.config().awsSecretKey,
+                }
               // Create the promise and SES service object
-              const sendPromise = new AWS.SES({apiVersion: '2010-12-01'}).sendEmail(params).promise();
+              const sendPromise = new AWS.SES(SESConfig).sendEmail(params).promise();
               return await sendPromise.then((data)=>{
                             Logger.info(`Email Message Id id ${data.MessageId}`)
                             return {

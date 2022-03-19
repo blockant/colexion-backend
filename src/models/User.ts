@@ -26,7 +26,8 @@ const UserSchema= new mongoose.Schema<IUser>(
         wallets:[
             {
                 name: String,
-                address: String
+                address: String,
+                _id: false
             }
         ],
         external_urls:[
@@ -51,7 +52,7 @@ const UserSchema= new mongoose.Schema<IUser>(
         banner: {
             type: String,
             default: ""
-        }
+        },
     },{
         timestamps: true
     }

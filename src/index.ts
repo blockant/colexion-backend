@@ -6,6 +6,7 @@ import morganMiddleware from './middlewares/Morgan'
 import {Database} from './providers/Database'
 // Importing Routes
 import masterRoutes from './routes/index'
+import AWSService from './services/AWS'
 dotenv.config()
 const app = express();
 
@@ -15,7 +16,8 @@ app.use(express.json({limit: '3mb'}));
 app.use(express.urlencoded({ limit: '3mb', extended: true }));
 app.use(morganMiddleware)
 app.use(cors())
-app.get( "/health", ( req, res ) => {
+app.get( "/health", async ( req, res ) => {
+    // await AWSService.sendEmail('<test_email>', '<h1>Helllo World</h1>', 'First Test')
     return res.status(200).json({message: "Service Running"})
 });
 

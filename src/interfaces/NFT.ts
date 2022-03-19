@@ -20,7 +20,11 @@ export default interface INFT extends mongoose.Document{
     liked_by_logged_in_user: boolean,
     wished_by_logged_in_user: boolean,
     minted: boolean,
-    tokenId: {
-        type: string
-    },
+    tokenId: string,
+    category:string,
+    name:string,
+    description: string,
+    file_cloud_url: string,
+    file_type: string,
+    owner_address: string
 }

@@ -80,7 +80,20 @@ class Users{
         }
     }
     public static async addWallet(req: Request, res: Response){
-
+        try{
+            const {wallet_address}=req.body
+            const foundUser= await User.findById(res.locals.userId).select('-password')
+            if(!foundUser){
+                throw new Error()
+            }
+            if(foundUser?.wallets.findIndex(wallet=>wallet.address===wallet_address)===-1){
+                foundUser.wallets.push({name: 'Default', address: wallet_address})
+            }
+            await foundUser.save()
+            return res.status(200).json({message: 'User Updated', user: foundUser})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
     }
     public static async toggleFollowUser(req: Request, res: Response){
         try{

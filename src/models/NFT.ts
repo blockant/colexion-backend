@@ -39,6 +39,25 @@ const NFTSchema= new mongoose.Schema<INFT>({
     },
     tokenId:{
         type: String
+    },
+    category:{
+        type: String,
+        enum:["Art", "Music", "Domain Names", "Virtual World", "Trading Cards", "Sports", "Utility"]
+    },
+    name:{
+        type: String,
+    },
+    description:{
+        type: String
+    },
+    file_cloud_url:{
+        type: String
+    },
+    file_type:{
+        type: String
+    },
+    owner_address:{
+        type: String
     }
 }, {timestamps: true}) 
 
