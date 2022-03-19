@@ -211,7 +211,11 @@ class NFTController{
                 limit: Number(req.query.limit) || 10,
                 lean: true
             }
-            const foundUser= await User.findById(res.locals.userId).select('-password')
+            const {user_id}=req.query
+            if(!user_id){
+                throw new Error('User Id is Required')
+            }
+            const foundUser= await User.findById(user_id).select('-password')
             if(!foundUser){
                 throw new Error('No Logged in User Found')
             }
