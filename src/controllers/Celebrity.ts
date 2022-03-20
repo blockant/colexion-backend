@@ -60,7 +60,7 @@ class CelebrityController{
                 foundCeleb.category=category
             }
             await foundCeleb.save()
-            return res.status(200).json({message: 'Found Celebrity', updatedCeleb: foundCeleb})
+            return res.status(200).json({message: 'Updated Celebrity', updatedCeleb: foundCeleb})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }
