@@ -11,9 +11,7 @@ export default interface INFT extends mongoose.Document{
             user_id: string
         }
     ],
-    onMarketPlace:{
-        type: boolean
-    },
+    onMarketPlace:boolean,
     file_url:{
         type: string
     },
@@ -26,5 +24,8 @@ export default interface INFT extends mongoose.Document{
     description: string,
     file_cloud_url: string,
     file_type: string,
-    owner_address: string
+    owner_address: string,
+    price: string,
+    token_address: string,
+    sale_type: string
 }

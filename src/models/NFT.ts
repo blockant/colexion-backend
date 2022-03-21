@@ -58,6 +58,16 @@ const NFTSchema= new mongoose.Schema<INFT>({
     },
     owner_address:{
         type: String
+    },
+    price:{
+        type: String
+    },
+    token_address:{
+        type: String
+    },
+    sale_type:{
+        type: String,
+        enum: ['BUY', 'AUCTION', 'OPEN BIDS']
     }
 }, {timestamps: true}) 
 

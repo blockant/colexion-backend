@@ -231,6 +231,7 @@ class NFTController{
             for (const wallet of foundUser.wallets) {
                 wallet_addresses.push(wallet.address)
             }
+            // console.log('Wallet Addresses is', wallet_addresses)
             const findQuery: Record<string,any>={
                 'owner_address': {'$in': wallet_addresses}
             }
@@ -239,6 +240,48 @@ class NFTController{
             }
             const foundNFTs=await NFT.paginate(findQuery, options)
             return res.status(200).json({message: 'Success', foundNFTs})
+        } catch (err) {
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async updateNFTData(req: Request, res: Response){
+        try {
+            const {content_hash, tokenId, owner_address, onMarketPlace, price,token_address,sale_type }=req.body
+            if(!content_hash){
+                throw new Error('Insufficient Fields (content_hash) is must')
+            }
+            const foundNFT=await NFT.findOne({content_hash: content_hash})
+            if(!foundNFT){
+                throw new Error('NFT Not Found')
+            }
+            if(foundNFT.onMarketPlace===true){
+                throw new Error('Can not mutate nft once published on marketplace')
+            }
+            if(tokenId){
+                if(foundNFT.tokenId){
+                    throw new Error('Token Id Can\'t be mutated')
+                }else{
+                    foundNFT.tokenId=tokenId
+                    foundNFT.minted=true
+                }
+            }
+            if(owner_address){
+                foundNFT.owner_address=owner_address
+            }
+            if(onMarketPlace){
+                foundNFT.onMarketPlace=true
+            }
+            if(price){
+                foundNFT.price=price
+            }
+            if(token_address){
+                foundNFT.token_address=token_address
+            }
+            if(sale_type){
+                foundNFT.sale_type=sale_type
+            }
+            await foundNFT.save()
+            return res.status(200).json({message: 'Update Success', updatedNFT: foundNFT})
         } catch (err) {
             return ErrorHandler.APIErrorHandler(err, res)
         }

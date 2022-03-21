@@ -4,8 +4,11 @@ import { isLoggedIn, decodeTokenIfLoggedIn } from "../middlewares/Auth";
 import upload from "../middlewares/Upload";
 const router=Router()
 
-//Create an NFT
+// Create an NFT
 router.post('/upload', [upload.single('file')], NFTController.pinToIPFS)
+
+// Edit A NFT
+router.put('/', NFTController.updateNFTData)
 
 //Like/Unlike an NFT
 router.put('/:nftId/like', [isLoggedIn], NFTController.toggleLikeNFT)
