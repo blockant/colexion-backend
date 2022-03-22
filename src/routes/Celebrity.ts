@@ -1,19 +1,20 @@
 import { Router } from "express";
+import { isAdmin, isLoggedIn } from "../middlewares/Auth";
 import CelebrityController from "../controllers/Celebrity";
 const router=Router()
 
 // Create A celeb
-router.post('/', CelebrityController.addCelebrity )
+router.post('/',[isLoggedIn, isAdmin], CelebrityController.addCelebrity )
 
 // Edit Celeb
-router.put('/:celebId',CelebrityController.editCelebById )
+router.put('/:celebId',[isLoggedIn, isAdmin],CelebrityController.editCelebById )
 
 // Get All Celebs
-router.get('/', CelebrityController.getAllCelebs)
+router.get('/',[isLoggedIn, isAdmin], CelebrityController.getAllCelebs)
 
 // Get Celeb By Id
-router.get('/:celebId', CelebrityController.getCelebById)
+router.get('/:celebId',[isLoggedIn, isAdmin], CelebrityController.getCelebById)
 
 // Delete Celeb By Id
-router.delete('/:celebId', CelebrityController.deleteCelebById)
+router.delete('/:celebId',[isLoggedIn, isAdmin], CelebrityController.deleteCelebById)
 export default router

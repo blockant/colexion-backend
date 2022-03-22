@@ -18,6 +18,7 @@ export interface IUser extends mongoose.Document{
     }],
     avatar: string,
     banner: string,
-    authenticate(password: string): boolean;
+    authenticate(password: string): boolean,
+    role: string
 }
 export default IUser

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import NFTController from "../controllers/NFT";
-import { isLoggedIn, decodeTokenIfLoggedIn } from "../middlewares/Auth";
+import { isLoggedIn, decodeTokenIfLoggedIn, isAdmin } from "../middlewares/Auth";
 import upload from "../middlewares/Upload";
 const router=Router()
 
 // Create an NFT
-router.post('/upload', [upload.single('file')], NFTController.pinToIPFS)
+router.post('/upload', [isLoggedIn,isAdmin,upload.single('file')], NFTController.pinToIPFS)
 
 // Edit A NFT
 router.put('/', NFTController.updateNFTData)

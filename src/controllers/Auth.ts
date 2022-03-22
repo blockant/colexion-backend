@@ -5,10 +5,11 @@ import axios from 'axios'
 import JWT from "../providers/JWT";
 import Locals from "../providers/Locals";
 import { UUID } from "bson";
+import ErrorHandler from "../providers/Error";
 class Auth{
     public static async signup(req : Request, res: Response){
         try{
-            const {email, password, name}=req.body
+            const {email, password, name, role}=req.body
             if(!email || !password || !name){
                 throw new Error('Insufficient Fields while Signup')
             }
@@ -18,17 +19,13 @@ class Auth{
                 throw new Error('User Already Exists')
             }
             const newUser=new User({email, password, name})
+            if(role){
+                newUser.role=role
+            }
             await newUser.save()
             return res.status(200).json({message: 'Signup Success', user: newUser})
         }catch(err){
-            // tslint:disable-next-line:no-console
-            console.log(err)
-            Logger.error(err)
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async login(req: Request, res: Response){
@@ -48,12 +45,7 @@ class Auth{
             foundUser=await User.findOne({email}).select('-password')
             return res.status(200).json({message: 'Login Success', token: tokenObject.token, user: foundUser})
         }catch(err){
-            Logger.error(err)
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async facebookSignup(req: Request, res: Response){
@@ -91,12 +83,7 @@ class Auth{
                 return res.status(200).json({message: 'Signup Success', token: tokenObject.token, user: await User.findById(newUser._id).select("-password"), source: 'facebook'})
             }
         }catch(err){
-            // console.log(err)
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
     public static async facebookLogin(req: Request, res: Response){
@@ -132,11 +119,7 @@ class Auth{
                 throw new Error('User Not Found')
             }
         }catch(err){
-            if(err instanceof Error){
-                return res.status(500).json({message: 'Server Error', error: err.message})
-            }else{
-                return res.status(500).json({message: 'Server Error of Unhandledd Type'})
-            }
+            return ErrorHandler.APIErrorHandler(err, res)
         }
     }
 }
