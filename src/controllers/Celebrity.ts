@@ -18,8 +18,14 @@ class CelebrityController{
                 limit: Number(req.query.limit) || 10,
                 lean: true
             }
-            const foundCelebs=await Celebrity.paginate({}, options)
-            return res.status(200).json({message: 'Success', foundCelebs})
+            const {paginate}=req.query
+            if(paginate==='false'){
+                const foundCelebs=await Celebrity.find({})
+                return res.status(200).json({message: 'Success', foundCelebs})
+            }else{
+                const foundCelebs=await Celebrity.paginate({}, options)
+                return res.status(200).json({message: 'Success', foundCelebs})
+            }
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

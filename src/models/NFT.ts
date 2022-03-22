@@ -68,6 +68,12 @@ const NFTSchema= new mongoose.Schema<INFT>({
     sale_type:{
         type: String,
         enum: ['BUY', 'AUCTION', 'OPEN BIDS']
+    },
+    auction_start_time:{
+        type: Date
+    },
+    auction_end_time:{
+        type: Date
     }
 }, {timestamps: true}) 
 

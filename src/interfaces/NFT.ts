@@ -27,5 +27,7 @@ export default interface INFT extends mongoose.Document{
     owner_address: string,
     price: string,
     token_address: string,
-    sale_type: string
+    sale_type: string,
+    auction_start_time: Date,
+    auction_end_time: Date
 }

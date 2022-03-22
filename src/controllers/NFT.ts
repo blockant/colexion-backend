@@ -64,10 +64,26 @@ class NFTController{
                 limit: Number(req.query.limit) || 10,
                 lean: true
             }
-            const {category}=req.query
+            const {category, sale_type, live_auction, future_action, expired_auction}=req.query
             const findQuery: Record<string,any>={}
             if(category){
                 findQuery['category']=category
+            }
+            if(sale_type){
+                findQuery['sale_type']=sale_type
+            }
+            if(live_auction && future_action && expired_auction){
+                throw new Error('All Three Auction Types cant exist atleast two must be null/undefined')
+            }
+            if(live_auction){
+                findQuery['auction_end_time']={'$gte': new Date().toISOString()}
+                findQuery['auction_start_time']={'$lte': new Date().toISOString()}
+            }
+            if(future_action){
+                findQuery['auction_start_time']={'$gte': new Date().toISOString()}
+            }
+            if(expired_auction){
+                findQuery['auction_end_time']={'$lte': new Date().toISOString()}
             }
             if(req.query?.paginate==='false'){
                 let foundNFTS=await NFT.find(findQuery).lean()
@@ -244,9 +260,10 @@ class NFTController{
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }
+    //TODO: Add Respective Validations
     public static async updateNFTData(req: Request, res: Response){
         try {
-            const {content_hash, tokenId, owner_address, onMarketPlace, price,token_address,sale_type }=req.body
+            const {content_hash, tokenId, owner_address, onMarketPlace, price,token_address,sale_type, auction_end_time, auction_start_time }=req.body
             if(!content_hash){
                 throw new Error('Insufficient Fields (content_hash) is must')
             }
@@ -279,6 +296,12 @@ class NFTController{
             }
             if(sale_type){
                 foundNFT.sale_type=sale_type
+            }
+            if(auction_end_time){
+                foundNFT.auction_end_time=auction_end_time
+            }
+            if(auction_start_time){
+                foundNFT.auction_start_time=auction_start_time
             }
             await foundNFT.save()
             return res.status(200).json({message: 'Update Success', updatedNFT: foundNFT})
