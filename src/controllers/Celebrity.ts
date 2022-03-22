@@ -4,8 +4,8 @@ import ErrorHandler from "../providers/Error";
 class CelebrityController{
     public static async addCelebrity(req: Request, res: Response){
         try{
-            const {name, tier, category}=req.body
-            const celeb=await Celebrity.create({name, tier, category})
+            const {name, tier, category, email}=req.body
+            const celeb=await Celebrity.create({name, tier, category, email})
             return res.status(200).json({message: 'Celebrity Added Success', celeb})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
