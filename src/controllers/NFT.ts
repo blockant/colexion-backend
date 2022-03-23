@@ -276,7 +276,7 @@ class NFTController{
             }
             if(tokenId){
                 if(foundNFT.tokenId){
-                    throw new Error('Token Id Can\'t be mutated')
+                    throw new Error('Token Id Can\'t be mutated, NFT with same content Hash Already Exists')
                 }else{
                     foundNFT.tokenId=tokenId
                     foundNFT.minted=true
@@ -309,5 +309,32 @@ class NFTController{
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }
+    public static async checkOwnedNFT(req: Request, res: Response){
+        try{
+            const {nftId}=req.params
+            const foundUser=await User.findById(res.locals.userId)
+            if(!foundUser){
+                throw new Error('No User Found')
+            }
+            const foundNFT=await NFT.findById(nftId)
+            if(!foundNFT){
+                throw new Error('NFT Not found')
+            }
+            const owner_address=foundNFT.owner_address
+            if(foundUser.wallets.findIndex(wallet=>wallet.address===owner_address)===-1){
+                throw new Error('NFT Does Not Exist, on user Wallet')
+            }
+            return res.status(200).json({message: 'Success, NFT Owned'})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    // public static async syncMintNFTData(req: Request, res: Response){
+    //     try{
+
+    //     }catch(err){
+    //         return ErrorHandler.APIErrorHandler(err, res)
+    //     }
+    // }
 }
 export default NFTController

@@ -22,6 +22,9 @@ router.get('/',[decodeTokenIfLoggedIn], NFTController.getAllNFT)
 //Get All Owned NFTs
 router.get('/owned', NFTController.getOwnedNFT)
 
+//Check Owned Status of NFT
+router.get('/:nftId/owned',[isLoggedIn], NFTController.checkOwnedNFT )
+
 //Get NFT By Id
 router.get('/:nftId',[decodeTokenIfLoggedIn], NFTController.getNFTById )
 export default router
