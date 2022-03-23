@@ -74,6 +74,9 @@ const NFTSchema= new mongoose.Schema<INFT>({
     },
     auction_end_time:{
         type: Date
+    },
+    orderId:{
+        type: String
     }
 }, {timestamps: true}) 
 

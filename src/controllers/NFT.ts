@@ -235,7 +235,7 @@ class NFTController{
                 limit: Number(req.query.limit) || 10,
                 lean: true
             }
-            const {user_id, category}=req.query
+            const {user_id, category, sale_type}=req.query
             if(!user_id){
                 throw new Error('User Id is Required')
             }
@@ -254,6 +254,9 @@ class NFTController{
             if(category){
                 findQuery['category']=category
             }
+            if(sale_type){
+                findQuery['sale_type']=sale_type
+            }
             const foundNFTs=await NFT.paginate(findQuery, options)
             return res.status(200).json({message: 'Success', foundNFTs})
         } catch (err) {
@@ -263,13 +266,16 @@ class NFTController{
     //TODO: Add Respective Validations
     public static async updateNFTData(req: Request, res: Response){
         try {
-            const {content_hash, tokenId, owner_address, onMarketPlace, price,token_address,sale_type, auction_end_time, auction_start_time }=req.body
+            const {content_hash, tokenId, owner_address, onMarketPlace, price,token_address,sale_type, auction_end_time, auction_start_time, orderId}=req.body
             if(!content_hash){
                 throw new Error('Insufficient Fields (content_hash) is must')
             }
             const foundNFT=await NFT.findOne({content_hash: content_hash})
             if(!foundNFT){
                 throw new Error('NFT Not Found')
+            }
+            if(!foundNFT?.tokenId && !tokenId){
+                throw new Error('Token Id Must Be Provided')
             }
             if(foundNFT.onMarketPlace===true){
                 throw new Error('Can not mutate nft once published on marketplace')
@@ -281,6 +287,9 @@ class NFTController{
                     foundNFT.tokenId=tokenId
                     foundNFT.minted=true
                 }
+            }
+            if(orderId){
+                foundNFT.orderId=orderId
             }
             if(owner_address){
                 foundNFT.owner_address=owner_address
