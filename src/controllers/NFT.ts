@@ -245,7 +245,7 @@ class NFTController{
             if(!user_id){
                 throw new Error('User Id is Required')
             }
-            const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId})
+            const foundWallets=await ConnectedWallets.find({connected_user: user_id})
             const wallet_addresses=[]
             for (const wallet of foundWallets) {
                 wallet_addresses.push(wallet.wallet_address)

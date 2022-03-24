@@ -155,5 +155,28 @@ class Users{
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }
+    public static async checkWalletConnected(req: Request, res: Response){
+        try{
+            const {wallet_address}=req.body
+            if(!wallet_address){
+                throw new Error('Insuffucient Fields')
+            }
+            const foundWallet=await ConnectedWallets.findOne({connected_user: res.locals.userId,wallet_address: wallet_address})
+            if(!foundWallet){
+                return res.status(200).json({walletFound: false})
+            }
+            return res.status(200).json({walletFound: true})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getAllWallets(req: Request, res: Response){
+        try{
+            const foundWallets=await ConnectedWallets.find({connected_user: req.params.userId})
+            return res.status(200).json({foundWallets})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
 }
 export default Users
