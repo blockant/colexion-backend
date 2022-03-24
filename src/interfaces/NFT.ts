@@ -34,5 +34,6 @@ export default interface INFT extends mongoose.Document{
     claimed: boolean,
     to_be_claimed_by_after_action: string,
     createdAt: string,
-    updatedAt: string
+    updatedAt: string,
+    created_by: any
 }

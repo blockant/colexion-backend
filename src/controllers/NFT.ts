@@ -70,7 +70,7 @@ class NFTController{
                 lean: true,
                 sort: {'createdAt': -1}
             }
-            const {category, sale_type, live_auction, future_action, expired_auction}=req.query
+            const {category, sale_type, live_auction, future_action, expired_auction, onMarketPlace}=req.query
             const findQuery: Record<string,any>={'minted': true}
             if(category){
                 findQuery['category']=category
@@ -90,6 +90,11 @@ class NFTController{
             }
             if(expired_auction){
                 findQuery['auction_end_time']={'$lte': new Date().toISOString()}
+            }
+            if(onMarketPlace==="true"){
+                findQuery['onMarketPlace']=true
+            }else if(onMarketPlace==="false"){
+                findQuery['onMarketPlace']=false
             }
             if(req.query?.paginate==='false'){
                 let foundNFTS=await NFT.find(findQuery).lean().sort({'createdAt': -1})
@@ -206,9 +211,14 @@ class NFTController{
         try{
             const nftId=req.params.nftId
             const foundNFT=await NFT.findById(nftId).lean()
+            const foundWallet=await ConnectedWallets.findOne({wallet_address: foundNFT?.owner_address}).populate('connected_user', 'name _id avatar').lean()
+            if(!foundWallet){
+                throw new Error('NFT minted on this wallet, is not connected on the platform')
+            }
             if(!foundNFT){
                 throw new Error('NFT Not Found')
             }
+            foundNFT.created_by=foundWallet.connected_user
             if(res.locals.userId){
                 if(foundNFT.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
                     foundNFT.liked_by_logged_in_user=true
@@ -368,12 +378,5 @@ class NFTController{
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }
-    // public static async syncMintNFTData(req: Request, res: Response){
-    //     try{
-
-    //     }catch(err){
-    //         return ErrorHandler.APIErrorHandler(err, res)
-    //     }
-    // }
 }
 export default NFTController
