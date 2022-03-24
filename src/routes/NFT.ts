@@ -5,7 +5,7 @@ import upload from "../middlewares/Upload";
 const router=Router()
 
 // Create an NFT
-router.post('/upload', [isLoggedIn,isAdmin,upload.single('file')], NFTController.pinToIPFS)
+router.post('/upload', [upload.single('file')], NFTController.pinToIPFS)
 
 // Edit A NFT
 router.put('/', NFTController.updateNFTData)

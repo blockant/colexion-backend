@@ -11,11 +11,16 @@ import Web3 from "web3";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import AWSService from "../services/AWS";
 import User from "../models/User";
+import ConnectedWallets from "../models/ConnectedWallets";
+import OwnershipHistory from "../models/OwnershipHistory";
 class NFTController{
     public static async pinToIPFS(req: Request, res: Response){
         try{
+            console.log('req.body is', req.body)
             const {name, description, category}=req.body
-            // await processFileMiddleware(req, res);
+            if(!name && !description && !category){
+                throw new Error('Insufficient Fields')
+            }
             if(!req?.file){
                 return res.status(400).json({ message: "Please upload a file!" });
             }
@@ -62,10 +67,11 @@ class NFTController{
             const options={
                 page: Number(req.query.page) || 1,
                 limit: Number(req.query.limit) || 10,
-                lean: true
+                lean: true,
+                sort: {'createdAt': -1}
             }
             const {category, sale_type, live_auction, future_action, expired_auction}=req.query
-            const findQuery: Record<string,any>={}
+            const findQuery: Record<string,any>={'minted': true}
             if(category){
                 findQuery['category']=category
             }
@@ -86,7 +92,7 @@ class NFTController{
                 findQuery['auction_end_time']={'$lte': new Date().toISOString()}
             }
             if(req.query?.paginate==='false'){
-                let foundNFTS=await NFT.find(findQuery).lean()
+                let foundNFTS=await NFT.find(findQuery).lean().sort({'createdAt': -1})
                 if(res.locals.userId){
                     foundNFTS=foundNFTS.map((nft)=>{
                         if(nft.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
@@ -239,13 +245,10 @@ class NFTController{
             if(!user_id){
                 throw new Error('User Id is Required')
             }
-            const foundUser= await User.findById(user_id).select('-password')
-            if(!foundUser){
-                throw new Error('No Logged in User Found')
-            }
+            const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId})
             const wallet_addresses=[]
-            for (const wallet of foundUser.wallets) {
-                wallet_addresses.push(wallet.address)
+            for (const wallet of foundWallets) {
+                wallet_addresses.push(wallet.wallet_address)
             }
             // console.log('Wallet Addresses is', wallet_addresses)
             const findQuery: Record<string,any>={
@@ -266,7 +269,20 @@ class NFTController{
     //TODO: Add Respective Validations
     public static async updateNFTData(req: Request, res: Response){
         try {
-            const {content_hash, tokenId, owner_address, onMarketPlace, price,token_address,sale_type, auction_end_time, auction_start_time, orderId}=req.body
+            console.log('req.body is', req.body)
+            const {
+                content_hash,
+                tokenId, 
+                owner_address,
+                onMarketPlace,
+                price,
+                token_address,
+                sale_type, 
+                auction_end_time, 
+                auction_start_time, 
+                orderId,
+                claimed
+            }=req.body
             if(!content_hash){
                 throw new Error('Insufficient Fields (content_hash) is must')
             }
@@ -292,10 +308,18 @@ class NFTController{
                 foundNFT.orderId=orderId
             }
             if(owner_address){
+                await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address})
                 foundNFT.owner_address=owner_address
             }
-            if(onMarketPlace){
-                foundNFT.onMarketPlace=true
+            if(typeof onMarketPlace==="boolean"){
+                if(foundNFT.onMarketPlace){
+                    if(typeof claimed==="boolean" && claimed===true){
+                        foundNFT.claimed=true
+                        foundNFT.onMarketPlace=false
+                    }
+                }else{
+                    foundNFT.onMarketPlace=onMarketPlace
+                }
             }
             if(price){
                 foundNFT.price=price
@@ -304,6 +328,12 @@ class NFTController{
                 foundNFT.token_address=token_address
             }
             if(sale_type){
+                if(sale_type==='AUCTION'){
+                    if(foundNFT?.claimed===true){
+                        foundNFT.claimed=false
+                        foundNFT.to_be_claimed_by_after_action='0x0000000000000000000000000000000000000000'
+                    }
+                }
                 foundNFT.sale_type=sale_type
             }
             if(auction_end_time){
@@ -321,17 +351,17 @@ class NFTController{
     public static async checkOwnedNFT(req: Request, res: Response){
         try{
             const {nftId}=req.params
-            const foundUser=await User.findById(res.locals.userId)
-            if(!foundUser){
-                throw new Error('No User Found')
+            const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId}).lean()
+            if(foundWallets?.length){
+                throw new Error('No Wallets Found')
             }
             const foundNFT=await NFT.findById(nftId)
             if(!foundNFT){
                 throw new Error('NFT Not found')
             }
             const owner_address=foundNFT.owner_address
-            if(foundUser.wallets.findIndex(wallet=>wallet.address===owner_address)===-1){
-                throw new Error('NFT Does Not Exist, on user Wallet')
+            if(foundWallets.findIndex(wallet=>wallet.wallet_address===owner_address)===-1){
+                throw new Error('Wallet Not Connected')
             }
             return res.status(200).json({message: 'Success, NFT Owned'})
         }catch(err){

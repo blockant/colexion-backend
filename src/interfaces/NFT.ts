@@ -30,5 +30,9 @@ export default interface INFT extends mongoose.Document{
     sale_type: string,
     auction_start_time: Date,
     auction_end_time: Date,
-    orderId: string
+    orderId: string,
+    claimed: boolean,
+    to_be_claimed_by_after_action: string,
+    createdAt: string,
+    updatedAt: string
 }

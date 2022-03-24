@@ -3,6 +3,7 @@ import NFT from "../models/NFT";
 import Bid from "../models/Bid";
 import ErrorHandler from "../providers/Error";
 import User from "../models/User";
+import ConnectedWallets from "../models/ConnectedWallets";
 class BidController{
     public static async createANewBid(req: Request, res: Response){
         try{
@@ -14,19 +15,22 @@ class BidController{
             if(!foundNFT){
                 throw new Error('Valid Auction/Open Bid NFT Not Found')
             }
-            if(amount<foundNFT.price){
-                throw new Error('Amount can\'t be less than base')
+            if(amount< 1.1* Number(foundNFT.price)){
+                throw new Error('Amount can\'t be less than 10% of base')
             }
             if(foundNFT.sale_type==='AUCTION'){
                 const maxBid=await Bid.find({nft: nft_id}).sort({amount: -1}).limit(1)
-                // if(max)
+                if(amount< 1.1* Number(maxBid[0].amount)){
+                    throw new Error('New Bid Must be Atleast Greater than 10% of max bid')
+                }
             }
             const foundUser=await User.findById( res.locals.userId)
             if(!foundUser){
                 throw new Error('User Not Found')
             }
-            if(foundUser.wallets.findIndex(wallet=>wallet.address===wallet_address)===-1){
-                throw new Error('Given User Does not have the provided wallet Connected In His Account')
+            const foundWallet=await ConnectedWallets.findOne({connected_user: res.locals.userId, wallet_address: wallet_address})
+            if(!foundWallet){
+                throw new Error('Following wallet is not connected on user account')
             }
             const bid=await Bid.create({amount, created_by: res.locals.userId, wallet_address, nft: nft_id})
             return res.status(200).json({message: 'Bid Created Success', bid})
@@ -40,16 +44,32 @@ class BidController{
             if(!nftId){
                 throw new Error('NFT Id Not Provided')
             }
-            const foundBids=await Bid.find({nft: nftId}).populate('created_by', 'name email _id avatar').populate('nft', 'name _id price sale_type content_hash')
+            //Get all bids that were created 5 minutes ago.
+            const currentDate=new Date()
+            currentDate.setMinutes(currentDate.getMinutes()-5)
+            const foundBids=await Bid.find({nft: nftId}).populate('created_by', 'name email _id avatar').populate('nft', 'name _id price sale_type content_hash').lean()
+            for (const bid of foundBids) {
+                if(bid.createdAt<=currentDate.toISOString() && bid.created_by.toString()===res.locals.userId){
+                    bid.can_withdraw=true
+                }else{
+                    bid.can_withdraw=true
+                }
+            }            
             return res.status(200).json({message: 'Success', foundBids})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }
+    //TODO: Bind 
     public static async deleteBidById(req: Request, res: Response){
         try{
             const {bidId}=req.params
-            await Bid.deleteOne({_id: bidId, created_by: res.locals.userId})
+            const currentDate=new Date()
+            currentDate.setMinutes(currentDate.getMinutes()-5)
+            const response=await Bid.deleteOne({_id: bidId, created_by: res.locals.userId, createdAt: {'$lte': currentDate.toISOString()}})
+            if(response.deletedCount<1){
+                throw new Error('Bid not found, or can not delete before 5 Minutes')
+            }
             return res.status(200).json({message: 'Bid Delete Success'})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)

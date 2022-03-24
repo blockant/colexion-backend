@@ -5,6 +5,7 @@ import AWSService from "../services/AWS";
 import Locals from "../providers/Locals";
 import ErrorHandler from "../providers/Error";
 import Follows from "../models/Follower";
+import ConnectedWallets from '../models/ConnectedWallets'
 // import processFileMiddleware from "../middlewares/Upload";
 class Users{
     /**
@@ -84,13 +85,15 @@ class Users{
             const {wallet_address}=req.body
             const foundUser= await User.findById(res.locals.userId).select('-password')
             if(!foundUser){
-                throw new Error()
+                throw new Error('User Not Found')
             }
-            if(foundUser?.wallets.findIndex(wallet=>wallet.address===wallet_address)===-1){
-                foundUser.wallets.push({name: 'Default', address: wallet_address})
+            const foundWallet=await ConnectedWallets.findOne({wallet_address: wallet_address})
+            if(!foundWallet){
+                await ConnectedWallets.create({wallet_address: wallet_address, connected_user: res.locals.userId})
+            }else{
+                throw new Error('Wallet Already Connected!')
             }
-            await foundUser.save()
-            return res.status(200).json({message: 'User Updated', user: foundUser})
+            return res.status(200).json({message: 'User Updated'})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

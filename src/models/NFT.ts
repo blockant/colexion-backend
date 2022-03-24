@@ -42,7 +42,7 @@ const NFTSchema= new mongoose.Schema<INFT>({
     },
     category:{
         type: String,
-        enum:["Art", "Music", "Domain Names", "Virtual World", "Trading Cards", "Sports", "Utility"]
+        enum:["Celebrities","Sports","Music","Others"]
     },
     name:{
         type: String,
@@ -57,7 +57,8 @@ const NFTSchema= new mongoose.Schema<INFT>({
         type: String
     },
     owner_address:{
-        type: String
+        type: String,
+        default: '0x0000000000000000000000000000000000000000'
     },
     price:{
         type: String
@@ -77,6 +78,12 @@ const NFTSchema= new mongoose.Schema<INFT>({
     },
     orderId:{
         type: String
+    },
+    claimed:{
+        type: Boolean
+    },
+    to_be_claimed_by_after_action:{
+        type: String,
     }
 }, {timestamps: true}) 
 

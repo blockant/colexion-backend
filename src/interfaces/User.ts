@@ -12,10 +12,6 @@ export interface IUser extends mongoose.Document{
         }
     ],
     email_verified: boolean,
-    wallets:[{
-        name: string,
-        address: string
-    }],
     avatar: string,
     banner: string,
     authenticate(password: string): boolean,

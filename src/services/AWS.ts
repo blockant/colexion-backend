@@ -44,6 +44,7 @@ class AWSService{
                   },
                 Source: `${Locals.config().emailSenderAddress}`
               };
+              console.log('Params are', params)
               const SESConfig={
                   apiVersion: '2010-12-01',
                   region: Locals.config().awsRegion,

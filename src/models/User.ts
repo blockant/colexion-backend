@@ -23,13 +23,6 @@ const UserSchema= new mongoose.Schema<IUser>(
             type: Boolean,
             default: false
         },
-        wallets:[
-            {
-                name: String,
-                address: String,
-                _id: false
-            }
-        ],
         external_urls:[
             {
                 platform: {
