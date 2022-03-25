@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { isAdmin, isLoggedIn } from "../middlewares/Auth";
+import { isAdmin, isLoggedIn, decodeTokenIfLoggedIn } from "../middlewares/Auth";
 import BidController from "../controllers/Bid";
 const router=Router()
 
 //To Get All Bids on NFT
-router.get('/', BidController.getAllBids)
+router.get('/', [decodeTokenIfLoggedIn],BidController.getAllBids)
 
 //To Create A New Bid
 router.post('/',[isLoggedIn], BidController.createANewBid)

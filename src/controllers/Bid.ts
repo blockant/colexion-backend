@@ -40,19 +40,27 @@ class BidController{
     }
     public static async getAllBids(req: Request, res: Response){
         try{
+            //16:00
             const {nftId}=req.query
             if(!nftId){
                 throw new Error('NFT Id Not Provided')
             }
+            console.log('Logged In User Id',res.locals.userId )
             //Get all bids that were created 5 minutes ago.
             const currentDate=new Date()
             currentDate.setMinutes(currentDate.getMinutes()-5)
-            const foundBids=await Bid.find({nft: nftId}).populate('created_by', 'name email _id avatar').populate('nft', 'name _id price sale_type content_hash').lean()
+            //16:02
+            const foundBids=await Bid.find({nft: nftId}).populate('created_by', 'name email _id avatar').populate('nft', 'name _id price sale_type content_hash token_address').lean()
             for (const bid of foundBids) {
-                if(bid.createdAt<=currentDate.toISOString() && bid.created_by.toString()===res.locals.userId){
-                    bid.can_withdraw=true
+                if(new Date(bid.createdAt)>=currentDate){
+                    bid.can_withdraw=false
                 }else{
-                    bid.can_withdraw=true
+                    // console.log('Bid is', bid)
+                    if(res.locals.userId && bid.created_by?._id?.toString()===res.locals.userId){
+                        bid.can_withdraw=true
+                    }else{
+                        bid.can_withdraw=false
+                    }
                 }
             }            
             return res.status(200).json({message: 'Success', foundBids})

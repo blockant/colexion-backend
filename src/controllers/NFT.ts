@@ -367,10 +367,8 @@ class NFTController{
             }
             if(sale_type){
                 if(sale_type==='AUCTION'){
-                    if(foundNFT?.claimed===true){
-                        foundNFT.claimed=false
-                        foundNFT.to_be_claimed_by_after_action='0x0000000000000000000000000000000000000000'
-                    }
+                    foundNFT.claimed=false
+                    foundNFT.to_be_claimed_by_after_action='0x0000000000000000000000000000000000000000'
                 }
                 foundNFT.sale_type=sale_type
             }

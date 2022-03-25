@@ -10,7 +10,8 @@ import NFT from '../models/NFT'
 const auctionCron=cron.schedule('* * * * *', async ()=>{
     try{
         console.log('Updating Auction Status.....')
-        const foundNFTs=await NFT.find({sale_type: 'AUCTION', auction_end_time: {'$lte': new Date().toISOString()}, to_be_claimed_by_after_action: '0x0000000000000000000000000000000000000000'})
+        const currentDate=new Date().toISOString()
+        const foundNFTs=await NFT.find({sale_type: 'AUCTION', auction_end_time: {'$lte': currentDate}, to_be_claimed_by_after_action: '0x0000000000000000000000000000000000000000'})
         for (const nft of foundNFTs) {
             //Find Highest Bid
             const maxBid=await Bid.find({nft: nft._id}).sort({amount: -1}).limit(1)
