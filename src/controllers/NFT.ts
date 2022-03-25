@@ -117,6 +117,7 @@ class NFTController{
             }else{
                 const foundNFTS=await NFT.paginate(findQuery, options)
                 if(res.locals.userId){
+                    const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId}).lean()
                     foundNFTS.docs=foundNFTS.docs.map((nft)=>{
                         if(nft.liked_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
                             nft.liked_by_logged_in_user=true
@@ -128,6 +129,7 @@ class NFTController{
                         }else{
                             nft.wished_by_logged_in_user=false
                         }
+                        nft.owned_by_logged_in_user=foundWallets.findIndex(wallet=>wallet.wallet_address===nft.owner_address) !==-1 ? true: false
                         return nft
                     }) 
                 }
@@ -143,6 +145,10 @@ class NFTController{
             const foundNFT=await NFT.findById(nftId)
             if(!foundNFT){
                 throw new Error('No Such NFT Exists')
+            }
+            const foundWallet=await ConnectedWallets.findOne({wallet_address: foundNFT.owner_address}).populate('connected_user', 'name _id avatar').lean()
+            if(!foundWallet){
+                throw new Error('No Owner of this NFT or User Not Registered on platform')
             }
             let resp:any={}
             const {operation}=req.body
@@ -169,7 +175,7 @@ class NFTController{
             }else{
                 throw new Error('Illegal Operation')
             }
-            
+            resp.created_by=foundWallet.connected_user
             return res.status(200).json({message: 'NFT Updated Success', foundNFT: resp})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
@@ -210,6 +216,7 @@ class NFTController{
     public static async getNFTById(req: Request, res: Response){
         try{
             const nftId=req.params.nftId
+            await NFT.updateOne({_id: nftId}, {'$inc': {views: 1}})
             const foundNFT=await NFT.findById(nftId).lean()
             const foundWallet=await ConnectedWallets.findOne({wallet_address: foundNFT?.owner_address}).populate('connected_user', 'name _id avatar').lean()
             if(!foundWallet){
@@ -220,6 +227,8 @@ class NFTController{
             }
             foundNFT.created_by=foundWallet.connected_user
             if(res.locals.userId){
+                const connectedUserWallets=await ConnectedWallets.find({connected_user: res.locals.userId})
+                foundNFT.owned_by_logged_in_user= connectedUserWallets.findIndex(wallet=>wallet.wallet_address===foundNFT.owner_address) !==-1 ? true: false
                 if(foundNFT.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
                     foundNFT.liked_by_logged_in_user=true
                 }else{

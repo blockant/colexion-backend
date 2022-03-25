@@ -84,6 +84,10 @@ const NFTSchema= new mongoose.Schema<INFT>({
     },
     to_be_claimed_by_after_action:{
         type: String,
+    },
+    views:{
+        type: Number,
+        default: 0
     }
 }, {timestamps: true}) 
 

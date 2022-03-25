@@ -35,5 +35,7 @@ export default interface INFT extends mongoose.Document{
     to_be_claimed_by_after_action: string,
     createdAt: string,
     updatedAt: string,
-    created_by: any
+    created_by: any,
+    owned_by_logged_in_user: boolean,
+    views: number
 }
