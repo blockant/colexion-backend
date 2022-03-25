@@ -16,11 +16,14 @@ router.put('/:nftId/like', [isLoggedIn], NFTController.toggleLikeNFT)
 //Add NFT To Wishlist
 router.put('/:nftId/wish', [isLoggedIn], NFTController.addNFTToWishList)
 
+//Add NFT To Wishlist
+router.put('/:nftId/owner/transfer', NFTController.transferNFTOwnership)
+
 //Get All NFT's
 router.get('/',[decodeTokenIfLoggedIn], NFTController.getAllNFT)
 
 //Get All Owned NFTs
-router.get('/owned', NFTController.getOwnedNFT)
+router.get('/owned',[decodeTokenIfLoggedIn], NFTController.getOwnedNFT)
 
 //Check Owned Status of NFT
 router.get('/:nftId/owned',[isLoggedIn], NFTController.checkOwnedNFT )

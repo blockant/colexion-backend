@@ -176,6 +176,8 @@ class NFTController{
                 throw new Error('Illegal Operation')
             }
             resp.created_by=foundWallet.connected_user
+            const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId}).lean()
+            resp.owned_by_logged_in_user=foundWallets.findIndex(wallet=>wallet.wallet_address===resp.owner_address) !==-1 ? true: false
             return res.status(200).json({message: 'NFT Updated Success', foundNFT: resp})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
@@ -280,6 +282,23 @@ class NFTController{
                 findQuery['sale_type']=sale_type
             }
             const foundNFTs=await NFT.paginate(findQuery, options)
+            if(res.locals.userId){
+                const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId}).lean()
+                foundNFTs.docs=foundNFTs.docs.map((nft)=>{
+                    if(nft.liked_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
+                        nft.liked_by_logged_in_user=true
+                    }else{
+                        nft.liked_by_logged_in_user=false
+                    }
+                    if(nft.wished_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
+                        nft.wished_by_logged_in_user=true
+                    }else{
+                        nft.wished_by_logged_in_user=false
+                    }
+                    nft.owned_by_logged_in_user=foundWallets.findIndex(wallet=>wallet.wallet_address===nft.owner_address) !==-1 ? true: false
+                    return nft
+                }) 
+            }
             return res.status(200).json({message: 'Success', foundNFTs})
         } catch (err) {
             return ErrorHandler.APIErrorHandler(err, res)
@@ -383,6 +402,29 @@ class NFTController{
                 throw new Error('Wallet Not Connected')
             }
             return res.status(200).json({message: 'Success, NFT Owned'})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async transferNFTOwnership(req: Request, res: Response){
+        try{
+            //Whenever Ownership is transfered
+            const {nftId}=req.params
+            const {owner_address}=req.body
+            const foundNFT=await NFT.findById(nftId)
+            if(!foundNFT){
+                throw new Error('NFT Not Found')
+            }
+            if(owner_address){
+                await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address})
+                if(foundNFT.onMarketPlace){
+                    await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: ""}})
+                }
+            }else{
+                throw new Error('Owner Address Is Required')
+            }
+            const updatedNFT=await NFT.findById(nftId)
+            return res.status(200).json({message: 'Transfered Ownership Success', updatedNFT})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

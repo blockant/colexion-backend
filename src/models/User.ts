@@ -40,7 +40,7 @@ const UserSchema= new mongoose.Schema<IUser>(
         },
         avatar: {
             type: String,
-            default: ""
+            default: "https://www.kindpng.com/picc/m/252-2524695_dummy-profile-image-jpg-hd-png-download.png"
         },
         banner: {
             type: String,
