@@ -400,7 +400,7 @@ class NFTController{
             if(sale_type){
                 if(sale_type==='AUCTION'){
                     foundNFT.claimed=false
-                    foundNFT.to_be_claimed_by_after_action='0x0000000000000000000000000000000000000000'
+                    foundNFT.to_be_claimed_by='0x0000000000000000000000000000000000000000'
                 }
                 foundNFT.sale_type=sale_type
             }
@@ -448,6 +448,9 @@ class NFTController{
             if(owner_address){
                 if(foundNFT.sale_type==='AUCTION' || foundNFT.sale_type==='OPEN BIDS'){
                     await Bid.deleteMany({nft: nftId})
+                    if(foundNFT.sale_type==='AUCTION'){
+                        foundNFT.to_be_claimed_by='0x0000000000000000000000000000000000000000'
+                    }
                 }
                 await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address})
                 if(foundNFT.onMarketPlace){
@@ -458,6 +461,31 @@ class NFTController{
             }
             const updatedNFT=await NFT.findById(nftId)
             return res.status(200).json({message: 'Transfered Ownership Success', updatedNFT})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getAllNFTToBeClaimed(req: Request, res: Response){
+        try{
+            const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId}).lean()
+            if(!foundWallets){
+                throw new Error('This User Has Not Connected Any Wallets')
+            }
+            const wallet_addresses=[]
+            for (const wallet of foundWallets) {
+                wallet_addresses.push(wallet.wallet_address)
+            }
+            const options={
+                page: Number(req.query.page) || 1,
+                limit: Number(req.query.limit) || 10,
+                lean: true,
+                sort: {'updatedAt': -1}
+            }
+            const findQuery={
+                'to_be_claimed_by':{'$in': wallet_addresses}
+            }
+            const foundNFTs=await NFT.paginate(findQuery, options)
+            return res.status(200).json({message: 'Transfered Ownership Success', foundNFTs})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

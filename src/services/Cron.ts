@@ -7,7 +7,7 @@ import NFT from '../models/NFT'
  * Check For Those NFT's whose auction has expired every minute
  * Set claim address based on the winning bid 
  */
-const auctionCron=cron.schedule('* * * * *', async ()=>{
+const auctionCron=cron.schedule('30 * * * * *', async ()=>{
     try{
         console.log('Updating Auction Status.....')
         const currentDate=new Date().toISOString()
@@ -15,7 +15,7 @@ const auctionCron=cron.schedule('* * * * *', async ()=>{
         for (const nft of foundNFTs) {
             //Find Highest Bid
             const maxBid=await Bid.find({nft: nft._id}).sort({amount: -1}).limit(1)
-            nft.to_be_claimed_by_after_action=maxBid?.[0]?.wallet_address
+            nft.to_be_claimed_by=maxBid?.[0]?.wallet_address
             await nft.save()
         }
     }catch(err){

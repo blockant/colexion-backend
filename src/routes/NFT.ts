@@ -25,6 +25,9 @@ router.get('/',[decodeTokenIfLoggedIn], NFTController.getAllNFT)
 //Get All Owned NFTs
 router.get('/owned',[decodeTokenIfLoggedIn], NFTController.getOwnedNFT)
 
+//To Be Claimed
+router.get('/toclaim',[isLoggedIn], NFTController.getAllNFTToBeClaimed)
+
 //Check Owned Status of NFT
 router.get('/:nftId/owned',[isLoggedIn], NFTController.checkOwnedNFT )
 

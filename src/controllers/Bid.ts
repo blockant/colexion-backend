@@ -20,7 +20,7 @@ class BidController{
             }
             if(foundNFT.sale_type==='AUCTION'){
                 const maxBid=await Bid.find({nft: nft_id}).sort({amount: -1}).limit(1)
-                if(amount< 1.1* Number(maxBid[0].amount)){
+                if(maxBid?.length>0 && amount< 1.1* Number(maxBid[0].amount)){
                     throw new Error('New Bid Must be Atleast Greater than 10% of max bid')
                 }
             }
