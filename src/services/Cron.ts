@@ -11,11 +11,13 @@ const auctionCron=cron.schedule('30 * * * * *', async ()=>{
     try{
         console.log('Updating Auction Status.....')
         const currentDate=new Date().toISOString()
-        const foundNFTs=await NFT.find({sale_type: 'AUCTION', auction_end_time: {'$lte': currentDate}, to_be_claimed_by_after_action: '0x0000000000000000000000000000000000000000'})
+        console.log('Current Date is', currentDate)
+        const foundNFTs=await NFT.find({sale_type: 'AUCTION', auction_end_time: {'$lte': currentDate}, to_be_claimed_by: '0x0000000000000000000000000000000000000000'})
         for (const nft of foundNFTs) {
             //Find Highest Bid
             const maxBid=await Bid.find({nft: nft._id}).sort({amount: -1}).limit(1)
             nft.to_be_claimed_by=maxBid?.[0]?.wallet_address
+            nft.onMarketPlace=false
             await nft.save()
         }
     }catch(err){
