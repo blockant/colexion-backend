@@ -13,6 +13,7 @@ import AWSService from "../services/AWS";
 import User from "../models/User";
 import ConnectedWallets from "../models/ConnectedWallets";
 import OwnershipHistory from "../models/OwnershipHistory";
+import Bid from "../models/Bid";
 class NFTController{
     public static async pinToIPFS(req: Request, res: Response){
         try{
@@ -426,6 +427,9 @@ class NFTController{
                 throw new Error('NFT Not Found')
             }
             if(owner_address){
+                if(foundNFT.sale_type==='AUCTION' || foundNFT.sale_type==='OPEN BIDS'){
+                    await Bid.deleteMany({nft: nftId})
+                }
                 await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address})
                 if(foundNFT.onMarketPlace){
                     await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: ""}})

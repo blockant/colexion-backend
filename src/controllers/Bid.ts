@@ -15,7 +15,7 @@ class BidController{
             if(!foundNFT){
                 throw new Error('Valid Auction/Open Bid NFT Not Found')
             }
-            if(amount< 1.1* Number(foundNFT.price)){
+            if(foundNFT.sale_type==='AUCTION' && amount< 1.1* Number(foundNFT.price)){
                 throw new Error('Amount can\'t be less than 10% of base')
             }
             if(foundNFT.sale_type==='AUCTION'){
@@ -53,6 +53,10 @@ class BidController{
             if(!nftId){
                 throw new Error('NFT Id Not Provided')
             }
+            const foundNFT=await NFT.findById(nftId)
+            if(!foundNFT){
+                throw new Error('NFT Not Found')
+            }
             console.log('Logged In User Id',res.locals.userId )
             //Get all bids that were created 5 minutes ago.
             const currentDate=new Date()
@@ -60,7 +64,7 @@ class BidController{
             //16:02
             const foundBids=await Bid.find({nft: nftId}).populate('created_by', 'name email _id avatar').populate('nft', 'name _id price sale_type content_hash token_address').lean()
             for (const bid of foundBids) {
-                if(new Date(bid.createdAt)>=currentDate){
+                if(new Date(bid.updatedAt)>=currentDate){
                     bid.can_withdraw=false
                 }else{
                     // console.log('Bid is', bid)
