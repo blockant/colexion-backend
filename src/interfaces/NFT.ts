@@ -40,5 +40,6 @@ export default interface INFT extends mongoose.Document{
     views: number,
     quantity: number,
     contract_type: string,
-    deployed_network: string
+    deployed_network: string,
+    current_max_bid: string
 }

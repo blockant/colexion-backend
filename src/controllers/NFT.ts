@@ -100,7 +100,7 @@ class NFTController{
             if(req.query?.paginate==='false'){
                 let foundNFTS=await NFT.find(findQuery).lean().sort({'createdAt': -1})
                 if(res.locals.userId){
-                    foundNFTS=foundNFTS.map((nft)=>{
+                    foundNFTS=await Promise.all(foundNFTS.map(async (nft)=>{
                         if(nft.liked_by.findIndex(user=>user.user_id===res.locals.userId)!==-1){
                             nft.liked_by_logged_in_user=true
                         }else{
@@ -111,15 +111,23 @@ class NFTController{
                         }else{
                             nft.wished_by_logged_in_user=false
                         }
+                        if(nft.sale_type==='AUCTION'){
+                            const maxBid=await Bid.find({nft: nft._id}).sort({amount: -1}).limit(1)
+                            if(maxBid?.length===0){
+                                nft.current_max_bid='No Bids Yet'
+                            }else{
+                                nft.current_max_bid=maxBid[0].amount.toString()
+                            }
+                        }
                         return nft
-                    })          
+                    })) 
                 }
                 return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
             }else{
                 const foundNFTS=await NFT.paginate(findQuery, options)
                 if(res.locals.userId){
                     const foundWallets=await ConnectedWallets.find({connected_user: res.locals.userId}).lean()
-                    foundNFTS.docs=foundNFTS.docs.map((nft)=>{
+                    foundNFTS.docs=await Promise.all(foundNFTS.docs.map(async (nft)=>{
                         if(nft.liked_by.findIndex((user: { user_id: any; })=>user.user_id===res.locals.userId)!==-1){
                             nft.liked_by_logged_in_user=true
                         }else{
@@ -132,8 +140,19 @@ class NFTController{
                         }
                         nft.owned_by_logged_in_user=foundWallets.findIndex(wallet=>wallet.wallet_address===nft.owner_address) !==-1 ? true: false
                         return nft
-                    }) 
+                    })) 
                 }
+                foundNFTS.docs=await Promise.all(foundNFTS.docs.map(async(nft)=>{
+                    if(nft.sale_type==='AUCTION'){
+                        const maxBid=await Bid.find({nft: nft._id}).sort({amount: -1}).limit(1)
+                        if(maxBid?.length===0){
+                            nft.current_max_bid='No Bids Yet'
+                        }else{
+                            nft.current_max_bid=maxBid[0].amount.toString()
+                        }
+                    }
+                    return nft
+                }))
                 return res.status(200).json({message: 'NFTs Found Success', foundNFTS})
             }
         }catch(err){

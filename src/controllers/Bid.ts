@@ -57,7 +57,7 @@ class BidController{
             if(!foundNFT){
                 throw new Error('NFT Not Found')
             }
-            console.log('Logged In User Id',res.locals.userId )
+            // console.log('Logged In User Id',res.locals.userId )
             //Get all bids that were created 5 minutes ago.
             const currentDate=new Date()
             currentDate.setMinutes(currentDate.getMinutes()-5)
