@@ -319,7 +319,10 @@ class NFTController{
                 auction_end_time, 
                 auction_start_time, 
                 orderId,
-                claimed
+                claimed,
+                contract_type,
+                deployed_network,
+                quantity
             }=req.body
             if(!content_hash){
                 throw new Error('Insufficient Fields (content_hash) is must')
@@ -341,6 +344,15 @@ class NFTController{
                     foundNFT.tokenId=tokenId
                     foundNFT.minted=true
                 }
+            }
+            if(contract_type){
+                foundNFT.contract_type=contract_type
+            }
+            if(deployed_network){
+                foundNFT.deployed_network=deployed_network
+            }
+            if(quantity){
+                foundNFT.quantity=quantity
             }
             if(orderId){
                 foundNFT.orderId=orderId

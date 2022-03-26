@@ -37,5 +37,8 @@ export default interface INFT extends mongoose.Document{
     updatedAt: string,
     created_by: any,
     owned_by_logged_in_user: boolean,
-    views: number
+    views: number,
+    quantity: number,
+    contract_type: string,
+    deployed_network: string
 }

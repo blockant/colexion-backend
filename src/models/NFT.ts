@@ -88,6 +88,17 @@ const NFTSchema= new mongoose.Schema<INFT>({
     views:{
         type: Number,
         default: 0
+    },
+    contract_type:{
+        type: String,
+        enum: ['ERC721', 'ERC1155']
+    },
+    deployed_network:{
+        type: String
+    },
+    quantity:{
+        type: Number,
+        default: 1
     }
 }, {timestamps: true}) 
 

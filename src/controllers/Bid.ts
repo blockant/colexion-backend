@@ -32,8 +32,16 @@ class BidController{
             if(!foundWallet){
                 throw new Error('Following wallet is not connected on user account')
             }
-            const bid=await Bid.create({amount, created_by: res.locals.userId, wallet_address, nft: nft_id})
-            return res.status(200).json({message: 'Bid Created Success', bid})
+            //If Bid Already by this wallet already exists, updateIt
+            const foundBid=await Bid.findOne({wallet_address: wallet_address, nft: nft_id})
+            if(foundBid){
+                foundBid.amount=amount
+                await foundBid.save()
+                return res.status(200).json({message: 'Bid Updated Success', bid: foundBid})  
+            }else{
+                const bid=await Bid.create({amount, created_by: res.locals.userId, wallet_address, nft: nft_id})
+                return res.status(200).json({message: 'Bid Created Success', bid})  
+            }
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }
