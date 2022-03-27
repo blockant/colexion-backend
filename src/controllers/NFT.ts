@@ -450,12 +450,11 @@ class NFTController{
                     await Bid.deleteMany({nft: nftId})
                     if(foundNFT.sale_type==='AUCTION'){
                         foundNFT.to_be_claimed_by='0x0000000000000000000000000000000000000000'
+                        await foundNFT.save()
                     }
                 }
                 await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address})
-                if(foundNFT.onMarketPlace){
-                    await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: ""}})
-                }
+                await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: "", auction_end_time: "", auction_start_time: ""}})
             }else{
                 throw new Error('Owner Address Is Required')
             }
@@ -485,7 +484,7 @@ class NFTController{
                 'to_be_claimed_by':{'$in': wallet_addresses}
             }
             const foundNFTs=await NFT.paginate(findQuery, options)
-            return res.status(200).json({message: 'Transfered Ownership Success', foundNFTs})
+            return res.status(200).json({message: 'To Claim', foundNFTs})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

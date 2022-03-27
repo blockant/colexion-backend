@@ -16,8 +16,12 @@ const auctionCron=cron.schedule('30 * * * * *', async ()=>{
         for (const nft of foundNFTs) {
             //Find Highest Bid
             const maxBid=await Bid.find({nft: nft._id}).sort({amount: -1}).limit(1)
-            nft.to_be_claimed_by=maxBid?.[0]?.wallet_address
-            nft.onMarketPlace=false
+            if(maxBid?.length===0){
+                nft.sale_type='BUY'
+            }else{
+                nft.to_be_claimed_by=maxBid?.[0]?.wallet_address
+                nft.onMarketPlace=false
+            }
             await nft.save()
         }
     }catch(err){
