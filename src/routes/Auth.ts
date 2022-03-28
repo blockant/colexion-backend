@@ -13,4 +13,7 @@ router.post('/signup/facebook', Auth.facebookSignup)
 
 //Login Via Facebook
 router.post('/login/facebook', Auth.facebookLogin)
+
+//Verify Email
+router.post('/verify/:userId', Auth.verifyEmail)
 export default router

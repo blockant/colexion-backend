@@ -71,7 +71,7 @@ class NFTController{
                 lean: true,
                 sort: {'createdAt': -1}
             }
-            const {category, sale_type, live_auction, future_action, expired_auction, onMarketPlace}=req.query
+            const {category, sale_type, live_auction, future_action, expired_auction, onMarketPlace, deployed_network}=req.query
             const findQuery: Record<string,any>={'minted': true}
             if(category){
                 findQuery['category']=category
@@ -96,6 +96,9 @@ class NFTController{
                 findQuery['onMarketPlace']=true
             }else if(onMarketPlace==="false"){
                 findQuery['onMarketPlace']=false
+            }
+            if(deployed_network){
+                findQuery['deployed_network']=deployed_network
             }
             if(req.query?.paginate==='false'){
                 let foundNFTS=await NFT.find(findQuery).lean().sort({'createdAt': -1})

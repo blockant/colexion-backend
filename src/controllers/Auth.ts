@@ -6,6 +6,8 @@ import JWT from "../providers/JWT";
 import Locals from "../providers/Locals";
 import { UUID } from "bson";
 import ErrorHandler from "../providers/Error";
+import AWSService from "../services/AWS";
+import Encrypter from "../providers/Encrypter";
 class Auth{
     public static async signup(req : Request, res: Response){
         try{
@@ -18,11 +20,16 @@ class Auth{
             if(foundUser){
                 throw new Error('User Already Exists')
             }
-            const newUser=new User({email, password, name})
+            let newUser=new User({email, password, name})
             if(role){
                 newUser.role=role
             }
-            await newUser.save()
+            newUser=await newUser.save()
+            const encryptedId=await Encrypter.encryptString(newUser._id.toString())
+            //Do Not Await in case Email Service is not Working
+            if(encryptedId){
+                AWSService.sendEmail(newUser.email, `<p>Hello There!</p> Click on the following link to verify your email ${Locals.config().url}/verify/${encryptedId}`, 'Colexion- Verify Email')
+            }
             return res.status(200).json({message: 'Signup Success', user: newUser})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
@@ -118,6 +125,23 @@ class Auth{
             }else{
                 throw new Error('User Not Found')
             }
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async verifyEmail(req: Request, res: Response){
+        try{
+            const {userId}=req.params
+            if(!userId){
+                throw new Error('User Id is required')
+            }
+            const decryptedId=await Encrypter.decryptString(userId)
+            const foundUser=await User.findOne({_id: decryptedId, email_verified: false})
+            if(!foundUser){
+                throw new Error('No such user found, or email already verified')
+            }
+            await User.updateOne({_id: decryptedId}, {'$set': {email_verified: true}})
+            return res.status(200).json({messsage: 'Email Verified Success'})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }

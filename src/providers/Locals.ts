@@ -40,6 +40,8 @@ class Locals {
 		const pinataSecret=process.env.PINATA_API_SECRET
 		const ERC721Address=process.env.ERC721Address
 		const emailSenderAddress=process.env.SENDER_EMAIL
+		const encryptionAlgorithm=process.env.ENCRYPTION_ALGO
+		const encryptionSecretKey=process.env.ENCRYPTION_SECRET_KEY
 		return {
 			apiPrefix,
 			copyright,
@@ -69,7 +71,9 @@ class Locals {
 			pinataAPIKey,
 			pinataSecret,
 			ERC721Address,
-			emailSenderAddress
+			emailSenderAddress,
+			encryptionAlgorithm,
+			encryptionSecretKey
 		};
 	}
 }
