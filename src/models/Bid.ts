@@ -20,6 +20,10 @@ const BidSchema= new mongoose.Schema<IBid>(
       },
       wallet_address:{
           type: String
+      },
+      invalid:{
+          type: Boolean,
+          default: false
       }
     },{
         timestamps: true

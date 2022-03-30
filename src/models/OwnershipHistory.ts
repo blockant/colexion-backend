@@ -11,10 +11,13 @@ const OwnershipHistorychema= new mongoose.Schema<IOwnershipHistory>({
         type: String,
         required: true
     },
-    nft:{
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'NFT'
+    nft_content_hash:{
+        type: String,
+        required: true
+    },
+    quantity:{
+        type: Number,
+        default: 1
     }
 }, {timestamps: true})
 OwnershipHistorychema.plugin(mongoosePaginate)

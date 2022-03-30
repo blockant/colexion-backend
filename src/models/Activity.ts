@@ -19,6 +19,14 @@ const ActivitySchema= new mongoose.Schema<IActivity>({
     receivers:{
         type: [Object]
     },
+    associated_nft:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'nft'
+    },
+    associated_user:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 }, {timestamps: true}) 
 
 

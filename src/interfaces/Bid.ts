@@ -6,5 +6,7 @@ export default interface IBid extends mongoose.Document{
     wallet_address: string,
     createdAt: string,
     updatedAt: string,
-    can_withdraw: boolean
+    can_withdraw: boolean,
+    quantity: number,
+    invalid: boolean
 }

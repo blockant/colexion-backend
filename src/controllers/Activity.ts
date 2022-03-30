@@ -34,6 +34,7 @@ class ActivityController{
                 page: Number(req.query.page) || 1,
                 limit: Number(req.query.limit) || 10
             }
+            const {nft_activity}=req.query
             const foundActivities=await Activity.paginate({}, options)
             return res.status(200).json({message: 'Success', activities: foundActivities})
         }catch(err){
