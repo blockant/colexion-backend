@@ -7,7 +7,7 @@ import ConnectedWallets from "../models/ConnectedWallets";
 class BidController{
     public static async createANewBid(req: Request, res: Response){
         try{
-            const {nft_id, amount, wallet_address}=req.body
+            const {nft_id, amount, wallet_address, quantity}=req.body
             if(amount<0){
                 throw new Error('Amount Bust be greater than 0')
             }
@@ -17,6 +17,10 @@ class BidController{
             }
             if(foundNFT.sale_type==='AUCTION' && amount< 1.1* Number(foundNFT.price)){
                 throw new Error('Amount can\'t be less than 10% of base')
+            }
+            if(foundNFT.contract_type==='ERC1155'){
+                if(!quantity || (foundNFT.quantity && quantity>foundNFT.quantity))
+                throw new Error(`Quantity Must Be provided > 0 and <= ${foundNFT.quantity}`)
             }
             if(foundNFT.sale_type==='AUCTION'){
                 const maxBid=await Bid.find({nft: nft_id}).sort({amount: -1}).limit(1)
@@ -36,10 +40,17 @@ class BidController{
             const foundBid=await Bid.findOne({wallet_address: wallet_address, nft: nft_id})
             if(foundBid){
                 foundBid.amount=amount
+                if(quantity && foundNFT.contract_type==='ERC1155' && foundNFT.quantity){
+                    foundBid.quantity=quantity
+                    //In case previous bid was Invalid Make it valid 
+                    if(quantity<=foundNFT.quantity){
+                        foundBid.invalid=false
+                    }
+                }
                 await foundBid.save()
                 return res.status(200).json({message: 'Bid Updated Success', bid: foundBid})  
             }else{
-                const bid=await Bid.create({amount, created_by: res.locals.userId, wallet_address, nft: nft_id})
+                const bid=await Bid.create({amount, created_by: res.locals.userId, wallet_address, nft: nft_id, quantity: quantity})
                 return res.status(200).json({message: 'Bid Created Success', bid})  
             }
         }catch(err){

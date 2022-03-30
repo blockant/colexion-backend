@@ -30,12 +30,16 @@ class ActivityController{
     }
     public static async getAllActivity(req: Request, res: Response){
         try{
-            const options={
-                page: Number(req.query.page) || 1,
-                limit: Number(req.query.limit) || 10
+            // const options={
+            //     page: Number(req.query.page) || 1,
+            //     limit: Number(req.query.limit) || 10
+            // }
+            const {nft_content_hash}=req.query
+            if(nft_content_hash){
+                const foundActivities=await Activity.find({nft_content_hash: nft_content_hash}).populate('associated_user', '_id name').populate('associated_nft', '_id name content_hash')
+                return res.status(200).json({message: 'Success', activities: foundActivities})
             }
-            const {nft_activity}=req.query
-            const foundActivities=await Activity.paginate({}, options)
+            const foundActivities=await Activity.find({type: 'Broadcast'})
             return res.status(200).json({message: 'Success', activities: foundActivities})
         }catch(err){
             ErrorHandler.APIErrorHandler(err, res)

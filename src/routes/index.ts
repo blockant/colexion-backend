@@ -5,6 +5,7 @@ import userRouter from './User'
 import nftRouter from './NFT'
 import celebRouter from './Celebrity'
 import bidRouter from './Bid'
+import activityRouter from './Activity'
 const router = Router()
 
 // Adding All Auth Routes
@@ -21,4 +22,7 @@ router.use('/celeb', celebRouter)
 
 // All Bid Routes
 router.use('/bid', bidRouter)
+
+// All Activity Routes
+router.use('/activity', activityRouter)
 export default router
