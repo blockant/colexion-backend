@@ -401,9 +401,9 @@ class NFTController{
                     // In Case wallet is not connected on user account do not log activity
                     if(foundUser){
                         if(quantity){
-                            await Activity.create({description: `${foundUser?.name} created ${quantity} copies of ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                            await Activity.create({description: `${foundUser?.name} created ${quantity} copies of ${foundNFT?.name}`,type: 'User', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                         }else{
-                            await Activity.create({description: `${foundUser?.name} created ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                            await Activity.create({description: `${foundUser?.name} created ${foundNFT?.name}`,type: 'User', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                         }
                     }
                 }
