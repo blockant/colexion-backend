@@ -8,6 +8,8 @@ import { UUID } from "bson";
 import ErrorHandler from "../providers/Error";
 import AWSService from "../services/AWS";
 import Encrypter from "../providers/Encrypter";
+import {OAuth2Client} from 'google-auth-library'
+const client = new OAuth2Client(Locals.config().CLIENT_ID)
 class Auth{
     public static async signup(req : Request, res: Response){
         try{
@@ -28,7 +30,11 @@ class Auth{
             const encryptedId=await Encrypter.encryptString(newUser._id.toString())
             //Do Not Await in case Email Service is not Working
             if(encryptedId){
-                AWSService.sendEmail(newUser.email, `<p>Hello There!</p> Click on the following link to verify your email ${Locals.config().url}/verify/${encryptedId}`, 'Colexion- Verify Email')
+                AWSService.sendEmail(newUser.email, `<p>Hey!</p>
+                <p>You're almost ready to witness the best-ever NFTs at Colexion.
+                Simply click on the link below to verify your email address.</p> 
+                <a href='${Locals.config().url}/verify/${encryptedId}'>Verify Email</a>`, 
+                'Colexion- Verify Email')
             }
             return res.status(200).json({message: 'Signup Success', user: newUser})
         }catch(err){
@@ -142,6 +148,37 @@ class Auth{
             }
             await User.updateOne({_id: decryptedId}, {'$set': {email_verified: true}})
             return res.status(200).json({messsage: 'Email Verified Success'})
+        }catch(err){
+            return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async googleAuth(req: Request, res: Response){
+        try{
+            const { token }  = req.body
+            const ticket = await client.verifyIdToken({
+                idToken: token,
+                audience: process.env.CLIENT_ID
+            });
+            // console.log('Ticket payload is', ticket.getPayload())
+            const { name, email }: any = ticket.getPayload();    
+            const foundUser=await User.findOne({email: email})
+            if(foundUser){
+                const tokenObject=JWT.issueJWT(foundUser)
+                return res.status(200).json({message: 'Login Success', token: tokenObject.token, user: foundUser})
+            }else{
+                const newUser=await User.create({email: email, name:name, password: new UUID()})
+                // console.log('New User is', newUser)
+                const encryptedId=await Encrypter.encryptString(newUser._id.toString())
+                if(encryptedId){
+                    AWSService.sendEmail(newUser.email, `<p>Hey!</p>
+                    <p>You're almost ready to witness the best-ever NFTs at Colexion.
+                    Simply click on the link below to verify your email address.</p> 
+                    <a href='${Locals.config().url}/verify/${encryptedId}'>Verify Email</a>`, 
+                    'Colexion- Verify Email')
+                }
+                const tokenObject=JWT.issueJWT(newUser)
+                return res.status(200).json({message: 'Signup Success', token: tokenObject.token, user: await User.findById(newUser._id).select("-password"), source: 'google'})
+            }
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
         }
