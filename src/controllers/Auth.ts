@@ -157,7 +157,7 @@ class Auth{
             const { token }  = req.body
             const ticket = await client.verifyIdToken({
                 idToken: token,
-                audience: process.env.CLIENT_ID
+                audience: Locals.config().clientID
             });
             // console.log('Ticket payload is', ticket.getPayload())
             const { name, email }: any = ticket.getPayload();    

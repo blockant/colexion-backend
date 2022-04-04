@@ -42,6 +42,7 @@ class Locals {
 		const emailSenderAddress=process.env.SENDER_EMAIL
 		const encryptionAlgorithm=process.env.ENCRYPTION_ALGO
 		const encryptionSecretKey=process.env.ENCRYPTION_SECRET_KEY
+		const clientID=process.env.GOOGLE_AUTH_CLIENT_ID
 		return {
 			apiPrefix,
 			copyright,
@@ -73,7 +74,8 @@ class Locals {
 			ERC721Address,
 			emailSenderAddress,
 			encryptionAlgorithm,
-			encryptionSecretKey
+			encryptionSecretKey,
+			clientID
 		};
 	}
 }
