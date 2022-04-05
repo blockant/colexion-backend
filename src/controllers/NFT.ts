@@ -443,7 +443,7 @@ class NFTController{
                         //If Only 1 Exists or All are placed on MArketplace
                         if(foundNFT.quantity && (foundNFT.quantity===1 || foundNFT.quantity===quantity) ){
                             foundNFT.onMarketPlace=onMarketPlace
-                            await Activity.create({description: `${quantity} copies of ${foundNFT?.name} placed on marketplace by ${foundUser?.name} for ${foundNFT?.sale_type}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                            await Activity.create({description: `${quantity} ${quantity>1? 'copies': 'copy'} of ${foundNFT?.name} placed on marketplace by ${foundUser?.name} for ${foundNFT?.sale_type}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                         }else if(foundNFT.quantity && foundNFT.quantity>quantity){
                             //If Some Are Placed On Market Place
                             const newnft=foundNFT.toObject()
@@ -458,7 +458,7 @@ class NFTController{
                             foundNFT.price=undefined
                             foundNFT.sale_type=undefined
                             foundNFT.auction_start_time=undefined
-                            await Activity.create({description: `${quantity} copies of ${foundNFT?.name} placed on marketplace by ${foundUser?.name} for ${newnft?.sale_type}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                            await Activity.create({description: `${quantity} ${quantity>1? 'copies': 'copy'} of ${foundNFT?.name} placed on marketplace by ${foundUser?.name} for ${newnft?.sale_type}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                         }
                     }else{
                         foundNFT.onMarketPlace=true
@@ -596,7 +596,7 @@ class NFTController{
                     await Bid.deleteMany({nft: nftId})
                     const foundUser:any=await Users.getUserByWalletAddress(owner_address)
                     await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: "", auction_end_time: "", auction_start_time: "", price: ""}})
-                    await Activity.create({description: `${foundUser?.name} bought ${quantity} copies of ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                    await Activity.create({description: `${foundUser?.name} bought ${quantity} ${quantity>1? 'copies': 'copy'} of ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 }else{
                     //Bought Some Copies
                     //Update Bids to invalid which have more quantities
@@ -612,7 +612,7 @@ class NFTController{
                     //Update Count of existing NFT
                     await NFT.updateOne({_id: nftId}, {'$inc': {quantity: -quantity}})
                     await NFT.create({...nftData})
-                    await Activity.create({description: `${foundUser?.name} bought ${quantity} copies of ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                    await Activity.create({description: `${foundUser?.name} bought ${quantity} ${quantity>1? 'copies': 'copy'} of ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 }
             }else{
                 throw new Error('Owner Address Is Required')

@@ -1,6 +1,8 @@
 import Activity from "../models/Activity"
 import { Request, Response } from "express";
 import ErrorHandler from "../providers/Error";
+import NFT from "../models/NFT";
+import ConnectedWallets from "../models/ConnectedWallets";
 //Send Interval To Get All Activity
 const SEND_INTERVAL = 2000;
 class ActivityController{
@@ -37,7 +39,7 @@ class ActivityController{
             // }
             const {nft_content_hash}=req.query
             if(nft_content_hash){
-                const foundActivities=await Activity.find({nft_content_hash: nft_content_hash}).populate('associated_user', '_id name').populate('associated_nft', '_id name content_hash')
+                const foundActivities=await Activity.find({nft_content_hash: nft_content_hash, type: 'Broadcast'}).populate('associated_user', '_id name avatar').populate('associated_nft', '_id name content_hash')
                 return res.status(200).json({message: 'Success', activities: foundActivities})
             }
             const foundActivities=await Activity.find({type: 'Broadcast'})
@@ -70,12 +72,14 @@ class ActivityController{
         });
         const sseId = new Date().toDateString();
         const findQuery: any= [{type: 'Broadcast'}]
-        if(res?.locals?.userId){
-            findQuery.push({associated_user: res.locals.userId})
+        if(req?.query?.userId){
+            findQuery.push({associated_user: req.query.userId})
+            findQuery.push({type: 'Group', receivers: {'$in': [req.query.userId]}})
         }
+        console.log('FindQuery is', findQuery)
         const intervalId=setInterval(async () => {
             const foundActivities=await Activity.find({'$or': findQuery}).populate('associated_user', 'name email _id avatar').sort({createdAt: -1}).limit(5)
-            // console.log('Found Activities are', foundActivities)
+            console.log('Found Activities are', foundActivities)
             const unreadActivityCount=await Activity.count({'$and': [{isRead: false}, {'$or': findQuery}]})
             // console.log('Activity Count is', unreadActivityCount)
             ActivityController.writeActivityEvent(res, sseId, JSON.stringify({foundActivities: foundActivities, unreadCount: unreadActivityCount}));
@@ -89,6 +93,41 @@ class ActivityController{
         } else {
             res.json({ message: 'Ok' });
         }
+    }
+    public static async createActivityForGroups(description: string, associated_user: string, nft_id: string){
+        //Send New Activity for bid
+        try{
+            const foundActivities=await Activity.find({associated_nft: nft_id, type: 'Group'})
+            const foundNFT=await NFT.findById(nft_id).lean()
+            if(!foundNFT){
+                throw new Error('Can not find NFT')
+            }
+            const foundWallet=await ConnectedWallets.findOne({wallet_address: foundNFT.owner_address})
+            if(!foundWallet){
+                throw new Error('No user on platform connected to this wallet')
+            }
+            console.log(foundWallet)
+            const nft_creator: string=foundWallet.connected_user.toString()
+            //Get Existing Receivers (NFT Creator Must always be receiver)
+            const foundReceivers: Record<string, boolean>={}
+            if(nft_creator){
+                foundReceivers[`${nft_creator}`]=true
+            }   
+            
+            for (const activity of foundActivities) {
+                foundReceivers[`${activity.associated_user}`]=true
+            }
+            //Add Current user to receiver as well
+            foundReceivers[`${associated_user}`]=true
+            const receivers=Object.keys(foundReceivers)
+            //Update Receivers of previous activities
+            await Activity.updateOne({associated_nft: nft_id, type: 'Group'}, {'$set': {'receivers': receivers}})
+            //Messages will be different in case of ERC1155 and ERC721
+            await Activity.create({associated_nft: nft_id, type: 'Group', receivers: receivers, associated_user: associated_user, description: description})
+        }catch(err){
+            console.log('Error creating activity', err)
+        }
+        
     }
 }
 export default ActivityController
