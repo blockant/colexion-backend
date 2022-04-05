@@ -76,7 +76,7 @@ class ActivityController{
             findQuery.push({associated_user: req.query.userId})
             findQuery.push({type: 'Group', receivers: {'$in': [req.query.userId]}})
         }
-        console.log('FindQuery is', findQuery)
+        // console.log('FindQuery is', findQuery)
         const intervalId=setInterval(async () => {
             const foundActivities=await Activity.find({'$or': findQuery}).populate('associated_user', 'name email _id avatar').sort({createdAt: -1}).limit(5)
             console.log('Found Activities are', foundActivities)
@@ -106,7 +106,7 @@ class ActivityController{
             if(!foundWallet){
                 throw new Error('No user on platform connected to this wallet')
             }
-            console.log(foundWallet)
+            // console.log(foundWallet)
             const nft_creator: string=foundWallet.connected_user.toString()
             //Get Existing Receivers (NFT Creator Must always be receiver)
             const foundReceivers: Record<string, boolean>={}

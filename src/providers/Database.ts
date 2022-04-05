@@ -18,7 +18,7 @@ export class Database{
               Logger.error(err)
               Logger.error(`Initial Distribution API Database connection error occured - ${err.message}`);
             });
-        mongoose.set("debug",true);
+        mongoose.set("debug",false);
         mongoose.plugin(mongoosePaginate)
     }
 }
