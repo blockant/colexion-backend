@@ -15,8 +15,7 @@ const CelebritySchema= new mongoose.Schema<ICelebrity>({
        required: true
    },
    category:{
-       type: String,
-       enum:["Art", "Music", "Domain Names", "Virtual World", "Trading Cards", "Sports", "Utility"]
+       type: String
    },
    email: {
         type:String,
@@ -25,6 +24,10 @@ const CelebritySchema= new mongoose.Schema<ICelebrity>({
         lowercase: true,
         match: [/^([a-zA-Z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)$/gm, 'Please fill a valid email address']
     },
+    onboarded:{
+        type: Boolean,
+        default: false
+    }
 }, {timestamps: true}) 
 
 

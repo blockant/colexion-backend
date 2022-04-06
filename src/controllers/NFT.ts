@@ -74,7 +74,7 @@ class NFTController{
                 sort: {'createdAt': -1}
             }
             const {category, sale_type, live_auction, future_action, expired_auction, onMarketPlace, deployed_network}=req.query
-            const findQuery: Record<string,any>={'minted': true}
+            const findQuery: Record<string,any>={}
             if(category){
                 findQuery['category']=category
             }

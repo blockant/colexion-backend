@@ -9,6 +9,7 @@ import ErrorHandler from "../providers/Error";
 import AWSService from "../services/AWS";
 import Encrypter from "../providers/Encrypter";
 import {OAuth2Client} from 'google-auth-library'
+import Celebrity from "../models/Celebrity";
 const client = new OAuth2Client(Locals.config().CLIENT_ID)
 class Auth{
     public static async signup(req : Request, res: Response){
@@ -36,6 +37,7 @@ class Auth{
                 <a href='${Locals.config().url}/verify/${encryptedId}'>Verify Email</a>`, 
                 'Colexion- Verify Email')
             }
+            await Celebrity.updateOne({email: email, onboarded: false}, {'$set': {onboarded: true}})
             return res.status(200).json({message: 'Signup Success', user: newUser})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
@@ -177,6 +179,7 @@ class Auth{
                     'Colexion- Verify Email')
                 }
                 const tokenObject=JWT.issueJWT(newUser)
+                await Celebrity.updateOne({email: email, onboarded: false}, {'$set': {onboarded: true}})
                 return res.status(200).json({message: 'Signup Success', token: tokenObject.token, user: await User.findById(newUser._id).select("-password"), source: 'google'})
             }
         }catch(err){
