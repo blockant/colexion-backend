@@ -271,6 +271,14 @@ class NFTController{
                     foundNFT.wished_by_logged_in_user=false
                 }
             }
+            if(foundNFT.sale_type==='AUCTION'){
+                const maxBid=await Bid.find({nft: foundNFT._id}).sort({amount: -1}).limit(1)
+                if(maxBid?.length===0){
+                    foundNFT.current_max_bid='No Bids Yet'
+                }else{
+                    foundNFT.current_max_bid=maxBid[0].amount.toString()
+                }
+            }
             return res.status(200).json({message: 'Success', nft: foundNFT})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
