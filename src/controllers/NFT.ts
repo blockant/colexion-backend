@@ -525,12 +525,18 @@ class NFTController{
                         await foundNFT.save()
                     }
                 }
-                const history= await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address})
+                const history= await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address, nft_content_hash: foundNFT.content_hash})
                 if(history.previous_owner_address='0x0000000000000000000000000000000000000000'){
                     const foundUser:any=await Users.getUserByWalletAddress(owner_address)
+                    if(!foundUser){
+                        throw new Error('Following Owner Does Not Exist on Platform')
+                    }
                     await Activity.create({description: `${foundUser?.name} created ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 }else{
                     const foundUser:any=await Users.getUserByWalletAddress(owner_address)
+                    if(!foundUser){
+                        throw new Error('Following Owner Does Not Exist on Platform')
+                    }
                     await Activity.create({description: `Ownership of ${foundNFT?.name} transferred to ${foundUser?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 }
                 await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: "", auction_end_time: "", auction_start_time: ""}})
