@@ -25,11 +25,11 @@ export default interface INFT extends mongoose.Document{
     file_cloud_url: string,
     file_type: string,
     owner_address: string,
-    price: string,
+    price?: string,
     token_address: string,
-    sale_type: string,
-    auction_start_time: Date,
-    auction_end_time: Date,
+    sale_type?: string,
+    auction_start_time?: Date,
+    auction_end_time?: Date,
     orderId: string,
     claimed: boolean,
     to_be_claimed_by: string,
@@ -38,8 +38,8 @@ export default interface INFT extends mongoose.Document{
     created_by: any,
     owned_by_logged_in_user: boolean,
     views: number,
-    quantity: number,
+    quantity?: number,
     contract_type: string,
     deployed_network: string,
-    current_max_bid: string
+    current_max_bid?: string
 }

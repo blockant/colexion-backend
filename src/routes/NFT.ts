@@ -16,8 +16,11 @@ router.put('/:nftId/like', [isLoggedIn], NFTController.toggleLikeNFT)
 //Add NFT To Wishlist
 router.put('/:nftId/wish', [isLoggedIn], NFTController.addNFTToWishList)
 
-//Add NFT To Wishlist
+//Transfer NFT Ownership (ERC 721)
 router.put('/:nftId/owner/transfer', NFTController.transferNFTOwnership)
+
+//Transfer NFT Ownership (ERC 1155)
+router.put('/:nftId/owner/transfer/erc1155', NFTController.ERC1155_transferNFTOwnership)
 
 //Get All NFT's
 router.get('/',[decodeTokenIfLoggedIn], NFTController.getAllNFT)

@@ -6,6 +6,7 @@ import Locals from "../providers/Locals";
 import ErrorHandler from "../providers/Error";
 import Follows from "../models/Follower";
 import ConnectedWallets from '../models/ConnectedWallets'
+import IUser from "../interfaces/User";
 // import processFileMiddleware from "../middlewares/Upload";
 class Users{
     /**
@@ -176,6 +177,14 @@ class Users{
             return res.status(200).json({foundWallets})
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)
+        }
+    }
+    public static async getUserByWalletAddress(wallet_address: string){
+        try{
+            const foundConnectedWallet=await ConnectedWallets.findOne({wallet_address: wallet_address}).populate('connected_user', 'name email _id ').lean()
+            return foundConnectedWallet?.connected_user
+        }catch(err){
+            console.log(err)
         }
     }
 }

@@ -8,8 +8,7 @@ interface INFTModel<T extends mongoose.Document> extends mongoose.PaginateModel<
 const NFTSchema= new mongoose.Schema<INFT>({
     content_hash:{
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     liked_by:[
         {
