@@ -6,6 +6,9 @@ import User from "../models/User";
 import ConnectedWallets from "../models/ConnectedWallets";
 import Activity from "../models/Activity";
 import ActivityController from "./Activity";
+import AWSService from "../services/AWS";
+import Users from "./User";
+import Locals from "../providers/Locals";
 
 class BidController{
     public static async createANewBid(req: Request, res: Response){
@@ -68,6 +71,12 @@ class BidController{
                     description=`${foundUser.name} created a bid of ${amount} on ${foundNFT.name}`
                 }
                 await ActivityController.createActivityForGroups(description, res.locals.userId, nft_id)
+                const nftOwnerId=await Users.getUserByWalletAddress(foundNFT.owner_address)
+                const nftOwner=await User.findById(nftOwnerId)
+                if(nftOwner){
+                    await AWSService.sendEmail(nftOwner.email, `<p>Get new bid updates straight to your inbox</p>
+                    <p>We have a recent update for you. View active bids on your NFT <a href="${Locals.config().frontend_url}/item-details/${foundNFT._id}">here</a>.</p>`, `NFT- Bid Update`)
+                }
                 return res.status(200).json({message: 'Bid Created Success', bid})  
             }
         }catch(err){

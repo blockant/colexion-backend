@@ -539,7 +539,7 @@ class NFTController{
                 const foundPreviousOwner: any=await Users.getUserByWalletAddress(foundNFT.owner_address)
                 if(foundPreviousOwner){
                     await AWSService.sendEmail(foundPreviousOwner.email, `<p>Congratulations, you have sold out your NFT</p>
-                    <p>Check your item or track the recent updates <a href='${Locals.config}/item-details/${foundNFT._id}'>HERE</a></p>`, `NFT Sold- Sucess`)
+                    <p>Check your item or track the recent updates <a href='${Locals.config().frontend_url}/item-details/${foundNFT._id}'>HERE</a></p>`, `NFT Sold- Sucess`)
                 }
                 await Activity.create({description: `Ownership of ${foundNFT?.name} transferred to ${foundUser?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: "", auction_end_time: "", auction_start_time: ""}})
