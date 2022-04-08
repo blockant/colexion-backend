@@ -413,6 +413,7 @@ class NFTController{
                         }else{
                             await Activity.create({description: `${foundUser?.name} created ${foundNFT?.name}`,type: 'User', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                         }
+                        await AWSService.sendEmail(foundUser.email, '<p>Hey!</p><p>You have successfully created your NFT. You are now all set to sell or bid your selected NFT on our premium marketplace.</p>', 'NFT Created')
                     }
                 }
                 foundNFT.owner_address=owner_address
@@ -472,6 +473,10 @@ class NFTController{
                         foundNFT.onMarketPlace=true
                         await Activity.create({description: `${foundNFT?.name} placed on marketplace by ${foundUser?.name} for ${foundNFT?.sale_type}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id,nft_content_hash: foundNFT.content_hash })
                     }
+                    await AWSService.sendEmail(foundUser.email,`<p>Hey!</p> 
+                    <p>Your NFT is now live on our marketplace. 
+                    You can check out your recent activity and get all live updates only at Colexion’s 
+                    premium yet affordable marketplace.</p>`, 'NFT-Placed on Marketplace')
                 }
             }
             console.log('Found NFT', foundNFT)
@@ -526,19 +531,17 @@ class NFTController{
                     }
                 }
                 const history= await OwnershipHistory.create({nft: foundNFT._id, new_owner_address: owner_address, previous_owner_address: foundNFT.owner_address, nft_content_hash: foundNFT.content_hash})
-                if(history.previous_owner_address='0x0000000000000000000000000000000000000000'){
-                    const foundUser:any=await Users.getUserByWalletAddress(owner_address)
-                    if(!foundUser){
-                        throw new Error('Following Owner Does Not Exist on Platform')
-                    }
-                    await Activity.create({description: `${foundUser?.name} created ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
-                }else{
-                    const foundUser:any=await Users.getUserByWalletAddress(owner_address)
-                    if(!foundUser){
-                        throw new Error('Following Owner Does Not Exist on Platform')
-                    }
-                    await Activity.create({description: `Ownership of ${foundNFT?.name} transferred to ${foundUser?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
+                console.log('Created History is', history)
+                const foundUser:any=await Users.getUserByWalletAddress(owner_address)
+                if(!foundUser){
+                    throw new Error('Following Owner Does Not Exist on Platform')
                 }
+                const foundPreviousOwner: any=await Users.getUserByWalletAddress(foundNFT.owner_address)
+                if(foundPreviousOwner){
+                    await AWSService.sendEmail(foundPreviousOwner.email, `<p>Congratulations, you have sold out your NFT</p>
+                    <p>Check your item or track the recent updates <a href='${Locals.config}/item-details/${foundNFT._id}'>HERE</a></p>`, `NFT Sold- Sucess`)
+                }
+                await Activity.create({description: `Ownership of ${foundNFT?.name} transferred to ${foundUser?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: "", auction_end_time: "", auction_start_time: ""}})
             }else{
                 throw new Error('Owner Address Is Required')
@@ -609,11 +612,18 @@ class NFTController{
                     //Bought All Copies
                     await Bid.deleteMany({nft: nftId})
                     const foundUser:any=await Users.getUserByWalletAddress(owner_address)
+                    const foundPreviousOwner: any=await Users.getUserByWalletAddress(foundNFT.owner_address)
+                    if(foundPreviousOwner){
+                        await AWSService.sendEmail(foundPreviousOwner.email, `<p>Congratulations, you have sold out your NFT</p>
+                        <p>Check your item or track the recent updates <a href='${Locals.config}/item-details/${foundNFT._id}'>HERE</a></p>`, `NFT Sold- Sucess`)
+                    }
                     await NFT.updateOne({_id: nftId}, {'$set': {owner_address: owner_address, onMarketPlace: false}, '$unset': {sale_type: "", auction_end_time: "", auction_start_time: "", price: ""}})
                     await Activity.create({description: `${foundUser?.name} bought ${quantity} ${quantity>1? 'copies': 'copy'} of ${foundNFT?.name}`,type: 'Broadcast', associated_nft: foundNFT._id, associated_user: foundUser._id, nft_content_hash: foundNFT.content_hash})
                 }else{
                     //Bought Some Copies
                     //Update Bids to invalid which have more quantities
+                    //Set Current Bid as accepted
+                    await Bid.updateOne({_id: bidId}, {'$set': {accepted: true}})
                     await Bid.updateMany({nft: nftId, quantity: {'$gt': foundNFT.quantity-quantity}}, {'$set': {invalid: true}})
                     const foundUser:any=await Users.getUserByWalletAddress(owner_address)
                     const nftData=foundNFT.toObject()

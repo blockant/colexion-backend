@@ -8,7 +8,7 @@ const router=Router()
 router.post('/upload', [upload.single('file')], NFTController.pinToIPFS)
 
 // Edit A NFT
-router.put('/', NFTController.updateNFTData)
+router.put('/',[decodeTokenIfLoggedIn], NFTController.updateNFTData)
 
 //Like/Unlike an NFT
 router.put('/:nftId/like', [isLoggedIn], NFTController.toggleLikeNFT)

@@ -79,7 +79,7 @@ class ActivityController{
         // console.log('FindQuery is', findQuery)
         const intervalId=setInterval(async () => {
             const foundActivities=await Activity.find({'$or': findQuery}).populate('associated_user', 'name email _id avatar').sort({createdAt: -1}).limit(5)
-            console.log('Found Activities are', foundActivities)
+            // console.log('Found Activities are', foundActivities)
             const unreadActivityCount=await Activity.count({'$and': [{isRead: false}, {'$or': findQuery}]})
             // console.log('Activity Count is', unreadActivityCount)
             ActivityController.writeActivityEvent(res, sseId, JSON.stringify({foundActivities: foundActivities, unreadCount: unreadActivityCount}));

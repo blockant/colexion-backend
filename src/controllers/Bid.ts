@@ -40,7 +40,7 @@ class BidController{
                 throw new Error('Following wallet is not connected on user account')
             }
             //If Bid Already by this wallet already exists, updateIt
-            const foundBid=await Bid.findOne({wallet_address: wallet_address, nft: nft_id})
+            const foundBid=await Bid.findOne({wallet_address: wallet_address, nft: nft_id, accepted: false})
             if(foundBid){
                 foundBid.amount=amount
                 if(quantity && foundNFT.contract_type==='ERC1155' && foundNFT.quantity){

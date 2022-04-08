@@ -63,7 +63,7 @@ class Auth{
             return ErrorHandler.APIErrorHandler(err, res)
         }
     }
-    public static async facebookSignup(req: Request, res: Response){
+    public static async facebookAuth(req: Request, res: Response){
         try{
             console.log('Request Body is', req.body)
             const {code}=req.body
@@ -73,12 +73,12 @@ class Auth{
               params: {
                 client_id: Locals.config().facebookAppId,
                 client_secret: Locals.config().facebookAppSecret,
-                redirect_uri: Locals.config().frontend_url,
+                redirect_uri: `${Locals.config().frontend_url}/login`,
                 code,
               },
             });
             const fb_access_token=data.access_token
-            console.log(data); // { access_token, token_type, expires_in }
+            // console.log(data); // { access_token, token_type, expires_in }
             const response = await axios({
                 url: 'https://graph.facebook.com/me',
                 method: 'get',
@@ -90,48 +90,21 @@ class Auth{
             console.log('Graph Response is', response.data); // { id, email, first_name, last_name }
             const foundUser=await User.findOne({email: response.data.email})
             if(foundUser){
-                throw new Error('Following User Already Exists')
+                const tokenObject=JWT.issueJWT(foundUser)
+                return res.status(200).json({message: 'Login Success', token: tokenObject.token, user: foundUser})
             }else{
                 const newUser=await User.create({email: response.data.email, name: response.data.first_name, password: new UUID()})
                 console.log('New User is', newUser)
                 const tokenObject=JWT.issueJWT(newUser)
+                const encryptedId=await Encrypter.encryptString(newUser._id.toString())
+                if(encryptedId){
+                    AWSService.sendEmail(newUser.email, `<p>Hey!</p>
+                    <p>You're almost ready to witness the best-ever NFTs at Colexion.
+                    Simply click on the link below to verify your email address.</p> 
+                    <a href='${Locals.config().url}/verify/${encryptedId}'>Verify Email</a>`, 
+                    'Colexion- Verify Email')
+                }
                 return res.status(200).json({message: 'Signup Success', token: tokenObject.token, user: await User.findById(newUser._id).select("-password"), source: 'facebook'})
-            }
-        }catch(err){
-            return ErrorHandler.APIErrorHandler(err, res)
-        }
-    }
-    public static async facebookLogin(req: Request, res: Response){
-        try{
-            console.log('Request Body is', req.body)
-            const {code}=req.body
-            const {data} = await axios({
-              url: 'https://graph.facebook.com/v13.0/oauth/access_token',
-              method: 'get',
-              params: {
-                client_id: Locals.config().facebookAppId,
-                client_secret: Locals.config().facebookAppSecret,
-                redirect_uri: Locals.config().frontend_url,
-                code,
-              },
-            });
-            const fb_access_token=data.access_token
-            console.log(data); // { access_token, token_type, expires_in }
-            const response = await axios({
-                url: 'https://graph.facebook.com/me',
-                method: 'get',
-                params: {
-                  fields: ['email', 'first_name', 'last_name'].join(','),
-                  access_token: fb_access_token,
-                },
-              });
-            console.log('Graph Response is', response.data); // { id, email, first_name, last_name }
-            const foundUser=await User.findOne({email: response.data.email}).select('-password')
-            if(foundUser){
-                const tokenObject=JWT.issueJWT(foundUser)
-                return res.status(200).json({message: 'Login Success', token: tokenObject.token, user: foundUser, source: 'facebook'})
-            }else{
-                throw new Error('User Not Found')
             }
         }catch(err){
             return ErrorHandler.APIErrorHandler(err, res)

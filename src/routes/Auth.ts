@@ -15,11 +15,8 @@ router.post('/otp', OTPController.sendOTP)
 //Verify OTP
 router.post('/otp/verify', OTPController.verifyOTP)
 
-//Signup Via Facebook
-router.post('/signup/facebook', Auth.facebookSignup)
-
 //Login Via Facebook
-router.post('/login/facebook', Auth.facebookLogin)
+router.post('/facebook', Auth.facebookAuth)
 
 //Login Via Google
 router.post('/google', Auth.googleAuth)
