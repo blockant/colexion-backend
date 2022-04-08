@@ -92,7 +92,7 @@ class Users{
             if(!foundWallet){
                 await ConnectedWallets.create({wallet_address: wallet_address, connected_user: res.locals.userId})
             }else{
-                throw new Error('Wallet Already Connected!')
+                throw new Error('Account associated with other user try with different account!')
             }
             return res.status(200).json({message: 'User Updated'})
         }catch(err){
