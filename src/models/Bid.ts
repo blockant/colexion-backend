@@ -29,7 +29,8 @@ const BidSchema= new mongoose.Schema<IBid>(
           type: Number
       },
       accepted:{
-          type: Boolean
+          type: Boolean,
+          default: false
       }
     },{
         timestamps: true

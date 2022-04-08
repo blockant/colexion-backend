@@ -9,5 +9,5 @@ export default interface IBid extends mongoose.Document{
     can_withdraw: boolean,
     quantity: number,
     invalid: boolean,
-    accepted?:boolean
+    accepted:boolean
 }
